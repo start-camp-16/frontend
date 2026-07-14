@@ -26,7 +26,7 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
           <label class="visually-hidden" for="post-search">게시글 검색</label>
           <input id="post-search" name="q" value="">
           <button>검색</button>
-          <a class="button" href="/posts/new">글쓰기</a>
+          <a class="button button--write" href="/posts/new">글쓰기</a>
         </form>
       </div>
       <div id="board-state" aria-live="polite"></div>
