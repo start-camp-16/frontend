@@ -29,12 +29,12 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
           <a class="button button--write" href="/posts/new">글쓰기</a>
         </form>
       </div>
-      <div id="board-state" aria-live="polite"></div>
       <div class="post-list-head" aria-hidden="true">
         <span>분류</span>
         <span>제목</span>
         <span>작성일</span>
       </div>
+      <div id="board-state" aria-live="polite"></div>
       <div id="post-list" class="post-list"></div>
       <div id="board-pagination"></div>
     </section>`;
@@ -70,7 +70,13 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
       list.replaceChildren();
 
       if (!data.items.length) {
-        renderAsyncState(state, { kind: 'empty', message: '아직 게시글이 없습니다. 첫 이야기를 남겨보세요.' });
+        const searchTerm = q.trim();
+        renderAsyncState(state, {
+          kind: 'empty',
+          message: searchTerm
+            ? `"${searchTerm}" 검색 결과가 없습니다. 다른 검색어로 다시 찾아보세요.`
+            : '아직 게시글이 없습니다. 첫 이야기를 남겨보세요.',
+        });
         return;
       }
 

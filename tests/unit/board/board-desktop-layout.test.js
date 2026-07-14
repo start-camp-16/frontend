@@ -41,4 +41,23 @@ describe('board desktop layout structure', () => {
     expect(compactCss).toContain('.tag-tabsbutton{background:#fff;color:#334155;border:1pxsolid#cbd5e1');
     expect(compactCss).toContain('.post-row{display:grid;grid-template-columns:5rem1fr8rem;gap:1rem;align-items:center;text-decoration:none;padding:1rem1.2rem;background:#fff;border:1pxsolid#d6deea');
   });
+
+  it('keeps the list header above the empty search result message', async () => {
+    const outlet = document.createElement('main');
+
+    mountBoardListPage({
+      outlet,
+      query: new URLSearchParams({ q: '한강 피크닉' }),
+      signal: new AbortController().signal,
+      navigate: vi.fn(),
+    });
+
+    await vi.waitFor(() => {
+      expect(outlet.querySelector('#board-state')?.textContent).toContain('"한강 피크닉" 검색 결과가 없습니다.');
+    });
+    const listHead = outlet.querySelector('.post-list-head');
+    const state = outlet.querySelector('#board-state');
+    expect(listHead?.hidden).toBe(false);
+    expect(Boolean(listHead.compareDocumentPosition(state) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+  });
 });
