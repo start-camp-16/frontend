@@ -183,6 +183,7 @@
 .editor-form__section-head h2 { font-size: 1.05rem; }
 .editor-form__section-head p { margin-top: .25rem; color: var(--muted); font-size: .84rem; }
 .editor-form__section--password > label { max-width: 18rem; }
+.editor-form textarea { resize: none; }
 .editor-form__actions { display: flex; justify-content: flex-end; gap: .65rem; padding-top: 1.25rem; border-top: 1px solid var(--line); }
 .editor-form__actions a, .editor-form__actions button { min-width: 7rem; text-align: center; }
 
