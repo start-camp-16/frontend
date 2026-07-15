@@ -49,10 +49,10 @@ test('모바일에서 지도 위·목록 아래 흐름을 유지한다', async (
   const layout = await page.evaluate(() => {
     const map = document.querySelector('.ranking-map').getBoundingClientRect();
     const panel = document.querySelector('.ranking-results-panel').getBoundingClientRect();
-    return { mapHeight:map.height, mapBottom:map.bottom, panelTop:panel.top, panelPosition:getComputedStyle(document.querySelector('.ranking-results-panel')).position, overflow:document.documentElement.scrollWidth <= innerWidth };
+    return { mapHeight:map.height, mapTop:map.top, panelBottom:panel.bottom, panelPosition:getComputedStyle(document.querySelector('.ranking-results-panel')).position, overflow:document.documentElement.scrollWidth <= innerWidth };
   });
-  expect(layout.mapHeight).toBeGreaterThanOrEqual(310);
-  expect(layout.panelTop).toBeGreaterThanOrEqual(layout.mapBottom);
+  expect(layout.mapHeight).toBeGreaterThanOrEqual(350);
+  expect(layout.mapTop).toBeGreaterThanOrEqual(layout.panelBottom);
   expect(layout.panelPosition).toBe('static');
   expect(layout.overflow).toBe(true);
 });
