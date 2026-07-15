@@ -17,7 +17,7 @@
 .map-status:empty { display: none; }
 .map-status button { padding: .45rem .65rem; font-size: .78rem; }
 
-.place-grid { display: grid; gap: .65rem; }
+.place-grid { display: grid; grid-auto-rows: max-content; align-content: start; gap: .65rem; }
 .place-card { width: 100%; display: grid; grid-template-columns: 2.8rem 5.4rem 1fr; gap: .8rem; align-items: center; padding: .75rem; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); color: var(--text); box-shadow: none; text-align: left; }
 .place-card:hover { background: #f8faff; border-color: #aebdf6; }
 .place-card[aria-current="true"] { background: #f1f5ff; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(49,92,253,.13); }
