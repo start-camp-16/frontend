@@ -7,11 +7,12 @@
 
 .ranking-explorer { position: relative; min-height: 520px; height: min(70vh, 720px); overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #dcead9; }
 .ranking-map { position: absolute; inset: 0; z-index: 0; }
-.ranking-results-panel { position: absolute; z-index: 500; inset: 1rem auto 1rem 1rem; width: min(420px, 40%); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: .65rem; padding: .8rem; overflow: hidden; border: 1px solid rgba(223, 228, 238, .9); border-radius: 16px; background: rgba(255, 255, 255, .94); box-shadow: 0 18px 48px rgba(20, 38, 70, .18); backdrop-filter: blur(14px); }
+.ranking-results-panel { position: absolute; z-index: 500; inset: 1rem auto 1rem 1rem; width: min(420px, 40%); display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: .65rem; padding: .8rem; overflow: hidden; border: 1px solid rgba(223, 228, 238, .9); border-radius: 16px; background: rgba(255, 255, 255, .94); box-shadow: 0 18px 48px rgba(20, 38, 70, .18); backdrop-filter: blur(14px); }
 .ranking-results-panel .place-grid { overflow-y: auto; overscroll-behavior: contain; padding-right: .25rem; }
 .ranking-results-panel .async-state { background: rgba(255,255,255,.84); }
 .ranking-results-panel .pagination { margin-top: .4rem; }
-.ranking-recommendation { margin: 0; padding: .15rem .25rem; color: var(--primary); font-size: .85rem; font-weight: 800; }
+.ranking-recommendation { margin: 0; padding: .7rem .85rem; border: 1px solid rgba(49, 92, 253, .2); border-radius: 11px; background: linear-gradient(135deg, rgba(49, 92, 253, .12), rgba(107, 76, 230, .07)); color: var(--primary-dark); font-size: .86rem; font-weight: 900; letter-spacing: -.01em; }
+.ranking-recommendation::before { content: "✦"; margin-right: .45rem; color: var(--primary); }
 .map-status { position: absolute; z-index: 600; right: 1rem; top: 1rem; display: flex; align-items: center; gap: .6rem; max-width: min(28rem, calc(100% - 3rem)); padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.94); box-shadow: var(--shadow); color: var(--muted); font-size: .84rem; }
 .map-status:empty { display: none; }
 .map-status button { padding: .45rem .65rem; font-size: .78rem; }

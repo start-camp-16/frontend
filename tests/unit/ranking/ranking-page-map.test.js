@@ -32,7 +32,7 @@ it('목록과 마커 선택을 같은 content_id로 동기화한다', async () =
   }, { mapFactory });
 
   await vi.waitFor(() => expect(map.setItems).toHaveBeenCalledWith(items));
-  expect(outlet.querySelector('#ranking-recommendation').textContent).toBe('AI가 추천한 장소입니다');
+  expect(outlet.querySelector('#ranking-recommendation').textContent).toBe('AI가 추천한 장소 TOP 2입니다.');
   expect(outlet.querySelector('#ranking-recommendation').hidden).toBe(false);
   expect(api.getRankings).toHaveBeenCalledWith(expect.not.objectContaining({ page:expect.anything(), size:expect.anything() }));
   expect(outlet.querySelector('#ranking-pagination')).toBeNull();
