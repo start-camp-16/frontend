@@ -1,5 +1,6 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { getCategoryFallback } from './ranking-images.js';
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
@@ -26,6 +27,25 @@ function markerIcon(active = false) {
   });
 }
 
+export function createPopupContent(
+  item,
+  { isDesktop = globalThis.matchMedia?.('(min-width: 721px)').matches ?? true, fallbackUrl = getCategoryFallback(item.category) } = {},
+) {
+  const popup = document.createElement('div');
+  popup.className = 'ranking-popup';
+  const title = document.createElement('strong'); title.textContent = `${item.rank}위 · ${item.title}`; popup.append(title);
+  if (item.address) { const address = document.createElement('p'); address.textContent = item.address; popup.append(address); }
+  if (isDesktop) {
+    const image = document.createElement('img');
+    image.className = 'ranking-popup-image';
+    image.src = item.thumbnail_url ?? item.image_url ?? fallbackUrl;
+    image.alt = `${item.title} 대표 이미지`;
+    image.addEventListener('error', () => { image.src = fallbackUrl; }, { once:true });
+    popup.append(image);
+  }
+  return popup;
+}
+
 export function createLeafletAdapter(container, { onTileStatusChange = () => {} } = {}) {
   const map = L.map(container, { zoomControl: false, attributionControl: true });
   L.control.zoom({ position:'topright' }).addTo(map);
@@ -46,16 +66,15 @@ export function createLeafletAdapter(container, { onTileStatusChange = () => {} 
   return {
     addMarker(item, coordinate, onClick) {
       const marker = L.marker(coordinate, { icon: markerIcon(false), title: `${item.rank}위 ${item.title}` });
-      const popup = document.createElement('div');
-      const title = document.createElement('strong'); title.textContent = `${item.rank}위 · ${item.title}`; popup.append(title);
-      if (item.address) { const address = document.createElement('p'); address.textContent = item.address; popup.append(address); }
+      const popup = createPopupContent(item);
       marker.bindPopup(popup); marker.on('click', onClick); marker.addTo(map); markers.add(marker); return marker;
     },
     clearMarkers() { markers.forEach(marker => map.removeLayer(marker)); markers.clear(); },
     setView(coordinate, zoom, options) { map.setView(coordinate, zoom, options); },
     fitBounds(coordinates) {
+      const sidebar = container.parentElement?.querySelector('.ranking-results-panel');
       const desktopPanelPadding = container.clientWidth > 720
-        ? Math.min(440, Math.round(container.clientWidth * .42))
+        ? (sidebar?.dataset.sidebarState === 'collapsed' ? 88 : 440)
         : 36;
       map.fitBounds(coordinates, {
         paddingTopLeft:[desktopPanelPadding, 36],
