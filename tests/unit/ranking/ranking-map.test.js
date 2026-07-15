@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createRankingMap, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, toCoordinate } from '../../../src/features/ranking/ranking-map.js';
+import { createRankingMap, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, spreadOverlappingCoordinates, toCoordinate } from '../../../src/features/ranking/ranking-map.js';
 
 describe('toCoordinate', () => {
   it('유효한 좌표를 Leaflet 순서로 반환한다', () => {
@@ -13,6 +13,28 @@ describe('toCoordinate', () => {
     { latitude: 37.5, longitude: 181 },
   ])('유효하지 않은 좌표 $latitude, $longitude를 제외한다', item => {
     expect(toCoordinate(item)).toBeNull();
+  });
+});
+
+describe('spreadOverlappingCoordinates', () => {
+  it('동일 좌표만 순서가 고정된 서로 다른 표시 좌표로 분산한다', () => {
+    const items = [
+      { content_id:'a', latitude:37.5, longitude:127 },
+      { content_id:'b', latitude:37.5, longitude:127 },
+      { content_id:'c', latitude:37.5, longitude:127 },
+      { content_id:'d', latitude:37.6, longitude:127.1 },
+    ];
+
+    const first = spreadOverlappingCoordinates(items);
+    const second = spreadOverlappingCoordinates(items);
+    expect(first).toEqual(second);
+    expect(new Set(first.slice(0, 3).map(({ coordinate }) => coordinate.join(','))).size).toBe(3);
+    const distance = Math.hypot(
+      first[0].coordinate[0] - first[1].coordinate[0],
+      first[0].coordinate[1] - first[1].coordinate[1],
+    );
+    expect(distance).toBeGreaterThan(0.0007);
+    expect(first[3].coordinate).toEqual([37.6, 127.1]);
   });
 });
 

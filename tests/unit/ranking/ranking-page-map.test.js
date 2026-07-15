@@ -116,6 +116,34 @@ it('손잡이를 충분히 올리거나 내리면 장소 목록 상태를 전환
   cleanup();
 });
 
+it('데스크톱 장소 사이드바를 접고 펼칠 때 지도 크기를 다시 계산한다', async () => {
+  const map = { setItems:vi.fn(() => 1), select:vi.fn(), destroy:vi.fn(), invalidateSize:vi.fn(), retryTiles:vi.fn() };
+  const outlet = document.body.appendChild(document.createElement('main'));
+  const cleanup = mountRankingPage({
+    outlet,
+    query:new URLSearchParams('district=마포구&category=문화시설'),
+    signal:new AbortController().signal,
+    navigate:vi.fn(),
+  }, { mapFactory:vi.fn(() => map) });
+
+  await vi.waitFor(() => expect(map.setItems).toHaveBeenCalledWith(items));
+  const panel = outlet.querySelector('.ranking-results-panel');
+  const toggle = outlet.querySelector('.ranking-sidebar-toggle');
+  expect(panel.dataset.sidebarState).toBe('expanded');
+  expect(toggle.getAttribute('aria-expanded')).toBe('true');
+  map.invalidateSize.mockClear();
+
+  toggle.click();
+  expect(panel.dataset.sidebarState).toBe('collapsed');
+  expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  await vi.waitFor(() => expect(map.invalidateSize).toHaveBeenCalled());
+
+  toggle.click();
+  expect(panel.dataset.sidebarState).toBe('expanded');
+  expect(toggle.getAttribute('aria-expanded')).toBe('true');
+  cleanup();
+});
+
 it('초기 선택값이 없으면 구와 카테고리 선택 안내를 표시한다', async () => {
   const map = { setItems:vi.fn(() => 0), select:vi.fn(), destroy:vi.fn(), invalidateSize:vi.fn(), retryTiles:vi.fn() };
   const outlet = document.body.appendChild(document.createElement('main'));

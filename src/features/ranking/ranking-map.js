@@ -7,6 +7,30 @@ export function toCoordinate({ latitude, longitude }) {
   return [latitude, longitude];
 }
 
+export function spreadOverlappingCoordinates(items, radius = 0.0007) {
+  const entries = items
+    .map(item => ({ item, coordinate:toCoordinate(item) }))
+    .filter(entry => entry.coordinate);
+  const groups = new Map();
+  for (const entry of entries) {
+    const key = entry.coordinate.join(',');
+    const group = groups.get(key) ?? [];
+    group.push(entry);
+    groups.set(key, group);
+  }
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    group.forEach((entry, index) => {
+      const angle = (Math.PI * 2 * index) / group.length;
+      entry.coordinate = [
+        entry.coordinate[0] + Math.sin(angle) * radius,
+        entry.coordinate[1] + Math.cos(angle) * radius,
+      ];
+    });
+  }
+  return entries;
+}
+
 function prefersReducedMotion() {
   return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
@@ -23,9 +47,7 @@ export function createRankingMap({ container, onSelect = () => {}, adapter }) {
     markers.clear();
     selectedId = null;
     const coordinates = [];
-    for (const item of items) {
-      const coordinate = toCoordinate(item);
-      if (!coordinate) continue;
+    for (const { item, coordinate } of spreadOverlappingCoordinates(items)) {
       const id = String(item.content_id);
       const marker = adapter.addMarker(item, coordinate, () => onSelect(id));
       markers.set(id, { marker, item, coordinate });
