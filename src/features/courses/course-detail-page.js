@@ -62,7 +62,7 @@ export function mountCourseDetailPage({ outlet, params, signal, navigate }) {
     catch (error) { if (error.name !== 'AbortError') renderAsyncState(results, { kind: 'error', message: courseErrorMessage(error), onRetry: () => renderEditSearch(form, drawStops) }); }
     const loadPage = async page => {
       if (!district.value || !category.value) { results.textContent = '구와 카테고리를 선택해 주세요.'; return; }
-      try { const data = await getRankings({ district: district.value, category: category.value, page, signal }); renderPlaceSearchResults(results, data.items, new Set(toLocationIds(editDraft)), location => { editDraft = appendStop(editDraft, location); host.replaceChildren(); drawStops(); form.querySelector(`[data-course-stop="${location.content_id}"]`)?.focus(); }); renderPagination(pagination, { page: data.pagination.page, totalPages: data.pagination.total_pages, onPageChange: loadPage }); }
+      try { const data = await getRankings({ district: district.value, category: category.value, page, signal }); renderPlaceSearchResults(results, data.items, new Set(toLocationIds(editDraft)), location => { editDraft = appendStop(editDraft, location); host.replaceChildren(); drawStops(); form.querySelector(`[data-course-stop="${location.content_id}"]`)?.focus(); }); const pageInfo = data.pagination ?? { page: 1, total_pages: 1 }; renderPagination(pagination, { page: pageInfo.page, totalPages: pageInfo.total_pages, onPageChange: loadPage }); }
       catch (error) { if (error.name !== 'AbortError') renderAsyncState(results, { kind: 'error', message: courseErrorMessage(error), onRetry: () => loadPage(page) }); }
     };
     search.addEventListener('click', () => loadPage(1));
