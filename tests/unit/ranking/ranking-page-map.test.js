@@ -15,7 +15,7 @@ const items = [
 beforeEach(() => {
   api.getCategories.mockResolvedValue(['문화시설']);
   api.getDistricts.mockResolvedValue(['마포구']);
-  api.getRankings.mockResolvedValue({ items, pagination:{ page:1, total_pages:1 } });
+  api.getRankings.mockResolvedValue({ district:'마포구', category:'문화시설', items });
   Element.prototype.scrollIntoView = vi.fn();
 });
 
@@ -32,6 +32,8 @@ it('목록과 마커 선택을 같은 content_id로 동기화한다', async () =
   }, { mapFactory });
 
   await vi.waitFor(() => expect(map.setItems).toHaveBeenCalledWith(items));
+  expect(api.getRankings).toHaveBeenCalledWith(expect.not.objectContaining({ page:expect.anything(), size:expect.anything() }));
+  expect(outlet.querySelector('#ranking-pagination')).toBeNull();
   outlet.querySelector('[data-content-id="1"]').click();
   expect(map.select).toHaveBeenCalledWith('1', { focus:true });
   expect(outlet.querySelector('[data-content-id="1"]').getAttribute('aria-current')).toBe('true');
