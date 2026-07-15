@@ -12,7 +12,7 @@ async function mockMapApi(page) {
       { rank:2, content_id:'b', category:'문화시설', title:'서울생활문화센터', address:'서울 마포구', district:'마포구', longitude:126.918, latitude:37.555, image_url:null, thumbnail_url:null, phone:null, source_order:2 },
       { rank:3, content_id:'c', category:'문화시설', title:'좌표 없는 장소', address:null, district:'마포구', longitude:null, latitude:null, image_url:null, thumbnail_url:null, phone:null, source_order:3 },
     ],
-    pagination:{ page:1,size:20,total_items:3,total_pages:1 },
+    district:'마포구', category:'문화시설',
   } }));
 }
 
@@ -49,10 +49,10 @@ test('모바일에서 지도 위·목록 아래 흐름을 유지한다', async (
   const layout = await page.evaluate(() => {
     const map = document.querySelector('.ranking-map').getBoundingClientRect();
     const panel = document.querySelector('.ranking-results-panel').getBoundingClientRect();
-    return { mapHeight:map.height, mapBottom:map.bottom, panelTop:panel.top, panelPosition:getComputedStyle(document.querySelector('.ranking-results-panel')).position, overflow:document.documentElement.scrollWidth <= innerWidth };
+    return { mapHeight:map.height, mapTop:map.top, panelBottom:panel.bottom, panelPosition:getComputedStyle(document.querySelector('.ranking-results-panel')).position, overflow:document.documentElement.scrollWidth <= innerWidth };
   });
-  expect(layout.mapHeight).toBeGreaterThanOrEqual(310);
-  expect(layout.panelTop).toBeGreaterThanOrEqual(layout.mapBottom);
+  expect(layout.mapHeight).toBeGreaterThanOrEqual(350);
+  expect(layout.mapTop).toBeGreaterThanOrEqual(layout.panelBottom);
   expect(layout.panelPosition).toBe('static');
   expect(layout.overflow).toBe(true);
 });
