@@ -6,6 +6,8 @@ import { getCategories, getDistricts, getRankings } from '../ranking/ranking-api
 import { openModal } from '../../ui/modal.js';
 import { renderAsyncState } from '../../ui/async-state.js';
 import { renderPagination } from '../../ui/pagination.js';
+import { createCourseMap } from './course-map.js';
+import { createCourseLeafletAdapter } from './course-map-adapter.js';
 import './courses.css';
 
 export async function copyCourseLink(url, clipboard = navigator.clipboard) {
@@ -16,16 +18,49 @@ export async function copyCourseLink(url, clipboard = navigator.clipboard) {
 const formatDate = value => new Date(value).toLocaleString('ko-KR');
 function option(value) { const item = document.createElement('option'); item.value = value; item.textContent = value; return item; }
 
-export function mountCourseDetailPage({ outlet, params, signal, navigate }) {
+export function mountCourseDetailPage(
+  { outlet, params, signal, navigate },
+  { mapFactory = createCourseMap, adapterFactory = createCourseLeafletAdapter } = {},
+) {
   outlet.innerHTML = '<div id="course-detail"></div>';
-  const root = outlet.querySelector('#course-detail'); let course; let editDraft = [];
+  const root = outlet.querySelector('#course-detail'); let course; let editDraft = []; let courseMap; let selectedId = null;
+
+  function destroyCourseMap() {
+    courseMap?.destroy(); courseMap = undefined; selectedId = null;
+  }
 
   function renderRead() {
-    root.innerHTML = `<article class="course-detail"><header class="course-detail__header"><div><p class="eyebrow">Shared Seoul course</p><h1 class="page-title" tabindex="-1"></h1><p class="course-detail__date"></p></div><div class="course-detail__actions"><button type="button" class="button button--secondary" data-copy-course>링크 복사</button><button type="button" class="button button--secondary" data-edit-course>수정</button><button type="button" data-delete-course>삭제</button></div></header><p class="course-copy-status" aria-live="polite"></p><section class="course-detail__stops panel" aria-labelledby="shared-course-stops"><p class="course-step">방문 순서</p><h2 id="shared-course-stops">이 순서로 둘러보세요</h2><div data-read-stops></div></section></article>`;
+    destroyCourseMap();
+    root.innerHTML = `<article class="course-detail"><header class="course-detail__header"><div><p class="eyebrow">Shared Seoul course</p><h1 class="page-title" tabindex="-1"></h1><p class="course-detail__date"></p></div><div class="course-detail__actions"><button type="button" class="button button--secondary" data-copy-course>링크 복사</button><button type="button" class="button button--secondary" data-edit-course>수정</button><button type="button" data-delete-course>삭제</button></div></header><p class="course-copy-status" aria-live="polite"></p><section class="course-detail__explorer panel" aria-labelledby="shared-course-stops"><div class="course-detail__map-wrap"><div class="course-map" data-course-map role="region" aria-label="코스 방문 순서 지도"></div><div class="course-map-status" data-course-map-status aria-live="polite"></div></div><div class="course-detail__list"><p class="course-step">방문 순서</p><h2 id="shared-course-stops">이 순서로 둘러보세요</h2><div data-read-stops></div></div></section></article>`;
     root.querySelector('h1').textContent = course.title;
     root.querySelector('.course-detail__date').textContent = `만든 날 ${formatDate(course.created_at)}${course.updated_at !== course.created_at ? ` · 수정 ${formatDate(course.updated_at)}` : ''}`;
-    renderCourseStops(root.querySelector('[data-read-stops]'), course.stops);
-    root.querySelectorAll('.course-stop__actions').forEach(actions => actions.remove());
+    const mapContainer = root.querySelector('[data-course-map]'); const mapStatus = root.querySelector('[data-course-map-status]'); const stopsRoot = root.querySelector('[data-read-stops]');
+    const drawReadStops = () => renderCourseStops(stopsRoot, course.stops, { selectedId, onSelect: id => selectStop(id, { source: 'list' }) });
+    function selectStop(id, { source }) {
+      selectedId = String(id); drawReadStops();
+      const stop = course.stops.find(item => String(item.location.content_id) === selectedId);
+      const mapped = courseMap.select(selectedId, { focus: source === 'list' });
+      mapStatus.textContent = mapped ? `${stop?.location.title ?? '장소'}을(를) 지도에서 선택했습니다.` : '이 장소는 지도 위치 정보가 없습니다.';
+      if (source === 'marker') {
+        [...stopsRoot.querySelectorAll('[data-course-stop]')]
+          .find(element => element.dataset.courseStop === selectedId)
+          ?.querySelector('button')
+          ?.scrollIntoView({ block: 'nearest' });
+      }
+    }
+    function renderTileError() {
+      mapStatus.replaceChildren();
+      const message = document.createElement('span'); message.textContent = '지도를 불러오지 못했습니다.';
+      const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = '지도 다시 시도';
+      retry.addEventListener('click', () => { mapStatus.replaceChildren(); courseMap?.retryTiles(); });
+      mapStatus.append(message, retry);
+    }
+    drawReadStops();
+    const adapter = mapFactory === createCourseMap ? adapterFactory(mapContainer, { onTileError: renderTileError }) : undefined;
+    courseMap = mapFactory({ container: mapContainer, adapter, onSelect: id => selectStop(id, { source: 'marker' }) });
+    const markerCount = courseMap.setStops(course.stops);
+    if (!markerCount) { mapContainer.hidden = true; mapStatus.textContent = '이 코스에는 표시할 위치 정보가 없습니다.'; }
+    else queueMicrotask(() => courseMap?.invalidateSize());
     root.querySelector('[data-copy-course]').addEventListener('click', async () => {
       const url = `${location.origin}/courses/${course.public_id}`; const status = root.querySelector('.course-copy-status');
       if (await copyCourseLink(url)) status.textContent = '공유 링크를 복사했습니다.';
@@ -37,6 +72,7 @@ export function mountCourseDetailPage({ outlet, params, signal, navigate }) {
   }
 
   function renderEdit() {
+    destroyCourseMap();
     editDraft = course.stops.map(stop => ({ ...stop, location: { ...stop.location } }));
     root.innerHTML = `<section class="course-edit"><p class="eyebrow">Edit course</p><h1>코스 수정</h1><form id="course-edit-form" class="course-edit__form panel"><label>코스 제목<input name="title" maxlength="100"></label><div data-edit-stops></div><button type="button" class="button button--secondary" data-edit-add>+ 장소 추가</button><div data-edit-search></div><label>수정 비밀번호<input type="password" name="password" minlength="4" maxlength="20" autocomplete="current-password"></label><p class="course-error" data-edit-error role="alert"></p><div class="course-edit__actions"><button type="button" class="button button--secondary" data-cancel-edit>취소</button><button type="submit">변경 내용 저장</button></div></form></section>`;
     const form = root.querySelector('form'); form.elements.title.value = course.title; const stopsRoot = form.querySelector('[data-edit-stops]');
@@ -75,9 +111,10 @@ export function mountCourseDetailPage({ outlet, params, signal, navigate }) {
 
   renderAsyncState(root, { kind: 'loading', message: '코스를 불러오고 있어요.' });
   getCourse(params.publicId, { signal }).then(data => { course = data; renderRead(); }).catch(error => {
+    destroyCourseMap();
     if (error.name === 'AbortError') return;
     if (error.code === 'COURSE_NOT_FOUND') root.innerHTML = '<section class="async-state"><h1>코스를 찾을 수 없습니다</h1><p>링크를 다시 확인하거나 새 코스를 만들어 보세요.</p><a class="button" href="/courses">새 코스 만들기</a></section>';
     else renderAsyncState(root, { kind: 'error', message: courseErrorMessage(error), onRetry: () => location.reload() });
   });
-  return () => {};
+  return destroyCourseMap;
 }
