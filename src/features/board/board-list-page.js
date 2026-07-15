@@ -5,6 +5,8 @@ import { renderAsyncState } from '../../ui/async-state.js';
 import { renderPagination } from '../../ui/pagination.js';
 import './board.css';
 
+const PAGE_SIZES = [10, 20, 30];
+
 function boardTitle(district, prefix) {
   if (district && prefix) return `서울특별시 ${district} “${prefix}” 관련 소식`;
   if (district) return `서울특별시 ${district} 소식`;
@@ -17,6 +19,8 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
   const prefix = POST_PREFIXES.includes(query.get('prefix')) ? query.get('prefix') : '';
   const q = query.get('q') ?? '';
   const page = Math.max(1, parseInt(query.get('page') ?? '1', 10) || 1);
+  const requestedSize = Number.parseInt(query.get('size') ?? '', 10);
+  const size = PAGE_SIZES.includes(requestedSize) ? requestedSize : 10;
   const prefixes = ['전체', ...POST_PREFIXES];
 
   outlet.innerHTML = `
@@ -51,6 +55,14 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
           <input id="post-search" name="q" placeholder="동네 이야기 검색" value="">
           <button>검색</button>
         </form>
+        <div class="board-list-toolbar">
+          <label class="board-page-size" for="post-page-size">
+            <span>페이지당 표시 개수</span>
+            <select id="post-page-size" name="page-size">
+              ${PAGE_SIZES.map((pageSize) => `<option value="${pageSize}"${pageSize === size ? ' selected' : ''}>${pageSize}개씩 보기</option>`).join('')}
+            </select>
+          </label>
+        </div>
         <div id="board-state" aria-live="polite"></div>
         <div id="post-list" class="post-list"></div>
         <div id="board-pagination"></div>
@@ -60,12 +72,13 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
   outlet.querySelector('h1').textContent = boardTitle(district, prefix);
   outlet.querySelector('[name=q]').value = q;
 
-  const go = ({ nextDistrict = district, nextPrefix = prefix, nextQ = q, nextPage = 1 } = {}) => {
+  const go = ({ nextDistrict = district, nextPrefix = prefix, nextQ = q, nextPage = 1, nextSize = size } = {}) => {
     const params = new URLSearchParams();
     if (nextDistrict) params.set('district', nextDistrict);
     if (nextPrefix) params.set('prefix', nextPrefix);
     if (nextQ.trim()) params.set('q', nextQ.trim());
     if (nextPage > 1) params.set('page', String(nextPage));
+    params.set('size', String(nextSize));
     navigate(`/posts${params.size ? `?${params}` : ''}`);
   };
 
@@ -86,13 +99,17 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
     go({ nextQ: event.currentTarget.elements.q.value });
   });
 
+  outlet.querySelector('[name="page-size"]').addEventListener('change', (event) => {
+    go({ nextSize: Number(event.currentTarget.value) });
+  });
+
   const state = outlet.querySelector('#board-state');
   const list = outlet.querySelector('#post-list');
 
   const load = async () => {
     renderAsyncState(state, { kind: 'loading', message: '게시글을 불러오고 있습니다…' });
     try {
-      const data = await getPosts({ district, prefix, q, page, signal });
+      const data = await getPosts({ district, prefix, q, page, size, signal });
       state.replaceChildren();
       list.replaceChildren();
       if (!data.items.length) {

@@ -26,7 +26,7 @@ it('유효한 필터로 API를 호출하고 선택 상태 제목을 표시한다
 it('테마를 바꾸면 지역과 검색어를 유지하고 페이지를 초기화한다', () => {
   const { outlet, navigate } = mount();
   outlet.querySelector('[data-prefix="문화"]').click();
-  expect(navigate).toHaveBeenCalledWith('/posts?district=%EB%A7%88%ED%8F%AC%EA%B5%AC&prefix=%EB%AC%B8%ED%99%94&q=%ED%8C%8C%EC%8A%A4%ED%83%80');
+  expect(navigate).toHaveBeenCalledWith('/posts?district=%EB%A7%88%ED%8F%AC%EA%B5%AC&prefix=%EB%AC%B8%ED%99%94&q=%ED%8C%8C%EC%8A%A4%ED%83%80&size=10');
 });
 
 it('지역 모달 적용과 전체 보기를 URL에 반영한다', () => {
@@ -34,11 +34,11 @@ it('지역 모달 적용과 전체 보기를 URL에 반영한다', () => {
   outlet.querySelector('[data-open-district]').click();
   document.querySelector('[data-district-option="중구"]').click();
   document.querySelector('[data-apply-district]').click();
-  expect(navigate).toHaveBeenLastCalledWith('/posts?district=%EC%A4%91%EA%B5%AC&prefix=%EB%A7%9B%EC%A7%91&q=%ED%8C%8C%EC%8A%A4%ED%83%80');
+  expect(navigate).toHaveBeenLastCalledWith('/posts?district=%EC%A4%91%EA%B5%AC&prefix=%EB%A7%9B%EC%A7%91&q=%ED%8C%8C%EC%8A%A4%ED%83%80&size=10');
 
   outlet.querySelector('[data-open-district]').click();
   document.querySelector('[data-clear-district]').click();
-  expect(navigate).toHaveBeenLastCalledWith('/posts?prefix=%EB%A7%9B%EC%A7%91&q=%ED%8C%8C%EC%8A%A4%ED%83%80');
+  expect(navigate).toHaveBeenLastCalledWith('/posts?prefix=%EB%A7%9B%EC%A7%91&q=%ED%8C%8C%EC%8A%A4%ED%83%80&size=10');
 });
 
 it('잘못된 지역과 테마는 전체 필터로 처리한다', async () => {
@@ -46,4 +46,32 @@ it('잘못된 지역과 테마는 전체 필터로 처리한다', async () => {
   await vi.waitFor(() => expect(getPosts).toHaveBeenCalled());
   expect(getPosts).toHaveBeenCalledWith(expect.objectContaining({ district: '', prefix: '' }));
   expect(outlet.querySelector('h1').textContent).toBe('서울 동네 이야기');
+});
+
+it('게시글 API에 기본 표시 개수 10을 전달한다', async () => {
+  mount('');
+  await vi.waitFor(() => expect(getPosts).toHaveBeenCalled());
+  expect(getPosts).toHaveBeenCalledWith(expect.objectContaining({ size: 10 }));
+});
+
+it('유효한 표시 개수를 선택 상자와 게시글 API에 반영한다', async () => {
+  const { outlet } = mount('size=20');
+  await vi.waitFor(() => expect(getPosts).toHaveBeenCalled());
+  expect(outlet.querySelector('[name="page-size"]').value).toBe('20');
+  expect(getPosts).toHaveBeenCalledWith(expect.objectContaining({ size: 20 }));
+});
+
+it('지원하지 않는 표시 개수는 10으로 정규화한다', async () => {
+  const { outlet } = mount('size=999');
+  await vi.waitFor(() => expect(getPosts).toHaveBeenCalled());
+  expect(outlet.querySelector('[name="page-size"]').value).toBe('10');
+  expect(getPosts).toHaveBeenCalledWith(expect.objectContaining({ size: 10 }));
+});
+
+it('표시 개수를 바꾸면 필터를 유지하고 페이지를 초기화한다', () => {
+  const { outlet, navigate } = mount();
+  const select = outlet.querySelector('[name="page-size"]');
+  select.value = '30';
+  select.dispatchEvent(new Event('change'));
+  expect(navigate).toHaveBeenCalledWith('/posts?district=%EB%A7%88%ED%8F%AC%EA%B5%AC&prefix=%EB%A7%9B%EC%A7%91&q=%ED%8C%8C%EC%8A%A4%ED%83%80&size=30');
 });
