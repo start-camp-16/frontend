@@ -90,7 +90,7 @@ test('전체 마커와 목록 선택을 양방향 동기화한다', async ({ pag
   await expect.poll(() => page.locator('.ranking-results-panel').evaluate(element => {
     const rect = element.getBoundingClientRect();
     return { top:Math.round(rect.top), left:Math.round(rect.left), width:Math.round(rect.width), height:Math.round(rect.height) };
-  })).toEqual({ ...expandedPanelRect, height:44 });
+  })).toEqual({ ...expandedPanelRect, height:38 });
   await page.getByRole('button', { name:'장소 사이드바 펼치기' }).click();
   await expect.poll(() => page.locator('.ranking-results-panel').evaluate(element => Math.round(element.getBoundingClientRect().width))).toBe(390);
 
