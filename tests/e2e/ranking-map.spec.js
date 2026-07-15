@@ -12,7 +12,7 @@ async function mockMapApi(page) {
       { rank:2, content_id:'b', category:'문화시설', title:'서울생활문화센터', address:'서울 마포구', district:'마포구', longitude:126.918, latitude:37.555, image_url:null, thumbnail_url:null, phone:null, source_order:2 },
       { rank:3, content_id:'c', category:'문화시설', title:'좌표 없는 장소', address:null, district:'마포구', longitude:null, latitude:null, image_url:null, thumbnail_url:null, phone:null, source_order:3 },
     ],
-    pagination:{ page:1,size:20,total_items:3,total_pages:1 },
+    district:'마포구', category:'문화시설',
   } }));
 }
 
