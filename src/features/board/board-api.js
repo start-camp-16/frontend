@@ -1,5 +1,5 @@
 import { request } from '../../api/client.js';
-export const getPosts = ({ tag, q, page=1, size=20, signal }={}) => request('/api/posts',{query:{tag,q,page,size},signal});
+export const getPosts = ({ district, prefix, q, page=1, size=20, signal }={}) => request('/api/posts',{query:{district,prefix,q,page,size},signal});
 export const createPost = (body,{signal}={}) => request('/api/posts',{method:'POST',body,signal});
 export const getPost = (id,{signal}={}) => request(`/api/posts/${id}`,{signal});
 export const updatePost = (id,body,{signal}={}) => request(`/api/posts/${id}`,{method:'PUT',body,signal});
