@@ -55,14 +55,14 @@ export function mountCourseDetailPage({ outlet, params, signal, navigate }) {
   }
 
   async function renderEditSearch(form, drawStops) {
-    const host = form.querySelector('[data-edit-search]'); host.innerHTML = `<section class="course-place-search"><div class="course-place-search__header"><h3>추가할 장소 찾기</h3><button type="button" class="button button--secondary" data-close-search>닫기</button></div><form id="edit-place-search-form" class="course-place-search__form"><label>장소를 찾을 구<select name="district" disabled><option value="">구 선택</option></select></label><label>장소 카테고리<select name="category" disabled><option value="">카테고리 선택</option></select></label><button type="submit">장소 찾기</button></form><div data-results aria-live="polite"></div></section>`;
-    const searchForm = host.querySelector('form'); const results = host.querySelector('[data-results]'); host.querySelector('[data-close-search]').addEventListener('click', () => host.replaceChildren());
-    try { const [districts, categories] = await Promise.all([getDistricts({ signal }), getCategories({ signal })]); districts.forEach(value => searchForm.elements.district.append(option(value))); categories.forEach(value => searchForm.elements.category.append(option(value))); searchForm.elements.district.disabled = false; searchForm.elements.category.disabled = false; }
+    const host = form.querySelector('[data-edit-search]'); host.innerHTML = `<section class="course-place-search"><div class="course-place-search__header"><h3>추가할 장소 찾기</h3><button type="button" class="button button--secondary" data-close-search>닫기</button></div><div class="course-place-search__form"><label>장소를 찾을 구<select name="edit-place-district" disabled><option value="">구 선택</option></select></label><label>장소 카테고리<select name="edit-place-category" disabled><option value="">카테고리 선택</option></select></label><button type="button" data-edit-place-search>장소 찾기</button></div><div data-results aria-live="polite"></div></section>`;
+    const district = host.querySelector('[name="edit-place-district"]'); const category = host.querySelector('[name="edit-place-category"]'); const results = host.querySelector('[data-results]'); const search = host.querySelector('[data-edit-place-search]'); host.querySelector('[data-close-search]').addEventListener('click', () => host.replaceChildren());
+    try { const [districts, categories] = await Promise.all([getDistricts({ signal }), getCategories({ signal })]); districts.forEach(value => district.append(option(value))); categories.forEach(value => category.append(option(value))); district.disabled = false; category.disabled = false; }
     catch (error) { if (error.name !== 'AbortError') renderAsyncState(results, { kind: 'error', message: apiMessage(error), onRetry: () => renderEditSearch(form, drawStops) }); }
-    searchForm.addEventListener('submit', async event => {
-      event.preventDefault(); if (!searchForm.elements.district.value || !searchForm.elements.category.value) { results.textContent = '구와 카테고리를 선택해 주세요.'; return; }
-      try { const data = await getRankings({ district: searchForm.elements.district.value, category: searchForm.elements.category.value, signal }); renderPlaceSearchResults(results, data.items, new Set(toLocationIds(editDraft)), location => { editDraft = appendStop(editDraft, location); host.replaceChildren(); drawStops(); }); }
-      catch (error) { if (error.name !== 'AbortError') renderAsyncState(results, { kind: 'error', message: apiMessage(error), onRetry: () => searchForm.requestSubmit() }); }
+    search.addEventListener('click', async () => {
+      if (!district.value || !category.value) { results.textContent = '구와 카테고리를 선택해 주세요.'; return; }
+      try { const data = await getRankings({ district: district.value, category: category.value, signal }); renderPlaceSearchResults(results, data.items, new Set(toLocationIds(editDraft)), location => { editDraft = appendStop(editDraft, location); host.replaceChildren(); drawStops(); }); }
+      catch (error) { if (error.name !== 'AbortError') renderAsyncState(results, { kind: 'error', message: apiMessage(error), onRetry: () => search.click() }); }
     });
   }
 
