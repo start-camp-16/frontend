@@ -14,9 +14,10 @@ export function mountRankingPage(
   let currentItems = [];
   let selectedId = null;
 
-  outlet.innerHTML = `<section class="ranking-hero"><p class="eyebrow">Seoul city guide</p><h1 class="page-title">서울의 즐거움,<br><span>빠르게 찾아봐요.</span></h1><p class="lede">지역과 카테고리를 선택하면 지금 둘러볼 장소를 순서대로 보여드려요.</p></section><section class="ranking-workspace panel"><form class="ranking-filter"><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><label>무엇을 할까요?<select name="category" disabled><option value="">카테고리 선택</option></select></label><button disabled>장소 찾기</button></form><div class="ranking-explorer"><div id="ranking-map" class="ranking-map" role="region" aria-label="현재 랭킹 장소 지도"></div><div id="map-status" class="map-status" aria-live="polite"></div><section class="ranking-results-panel" aria-label="장소 랭킹 목록"><div id="ranking-status" aria-live="polite"></div><div id="ranking-results" class="place-grid"></div></section></div></section>`;
+  outlet.innerHTML = `<section class="ranking-hero"><p class="eyebrow">Seoul city guide</p><h1 class="page-title">서울의 즐거움,<br><span>빠르게 찾아봐요.</span></h1><p class="lede">지역과 카테고리를 선택하면 지금 둘러볼 장소를 순서대로 보여드려요.</p></section><section class="ranking-workspace panel"><form class="ranking-filter"><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><label>무엇을 할까요?<select name="category" disabled><option value="">카테고리 선택</option></select></label><button disabled>장소 찾기</button></form><div class="ranking-explorer"><div id="ranking-map" class="ranking-map" role="region" aria-label="현재 랭킹 장소 지도"></div><div id="map-status" class="map-status" aria-live="polite"></div><section class="ranking-results-panel" aria-label="장소 랭킹 목록"><p id="ranking-recommendation" class="ranking-recommendation" hidden>AI가 추천한 장소입니다</p><div id="ranking-status" aria-live="polite"></div><div id="ranking-results" class="place-grid"></div></section></div></section>`;
 
   const form = outlet.querySelector('form');
+  const recommendation = outlet.querySelector('#ranking-recommendation');
   const status = outlet.querySelector('#ranking-status');
   const mapStatus = outlet.querySelector('#map-status');
   const results = outlet.querySelector('#ranking-results');
@@ -71,6 +72,7 @@ export function mountRankingPage(
 
   async function loadRankings() {
     if (!districtSelect.value || !categorySelect.value) return;
+    recommendation.hidden = true;
     renderAsyncState(status, { kind:'loading', message:'장소를 찾고 있습니다…' });
     results.replaceChildren(); mapStatus.replaceChildren(); rankingMap.setItems([]);
     try {
@@ -81,6 +83,7 @@ export function mountRankingPage(
         mapStatus.textContent = '현재 결과에는 표시할 위치 정보가 없습니다.';
         return;
       }
+      recommendation.hidden = false;
       renderItems();
       const markerCount = rankingMap.setItems(data.items);
       if (!markerCount) mapStatus.textContent = '현재 결과에는 표시할 위치 정보가 없습니다.';
