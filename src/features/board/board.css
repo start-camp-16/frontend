@@ -345,8 +345,27 @@
 }
 
 .post-detail-comments .comment-form {
+  grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr) auto;
+  align-items: end;
+  padding: 1rem;
   border: 1px solid var(--line);
   background: #fff;
+}
+
+.post-detail-comments .comment-form > label:first-child {
+  grid-column: 1 / -1;
+}
+
+.post-detail-comments .comment-form > small {
+  align-self: center;
+}
+
+.post-detail-comments .comment-form > button {
+  justify-self: end;
+  width: auto;
+  min-height: 2.75rem;
+  padding: .7rem 1.15rem;
+  white-space: nowrap;
 }
 
 .post-detail-comments .comment {
@@ -583,6 +602,22 @@
 
   .post-desktop-actions {
     display: none;
+  }
+
+  .post-detail-comments .comment-form {
+    grid-template-columns: 1fr;
+    padding: 1.2rem;
+  }
+
+  .post-detail-comments .comment-form > label:first-child,
+  .post-detail-comments .comment-form > small,
+  .post-detail-comments .comment-form > button {
+    grid-column: 1;
+  }
+
+  .post-detail-comments .comment-form > button {
+    justify-self: stretch;
+    width: 100%;
   }
 }
 
