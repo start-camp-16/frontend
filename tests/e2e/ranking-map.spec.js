@@ -81,12 +81,15 @@ test('전체 마커와 목록 선택을 양방향 동기화한다', async ({ pag
   expect(desktopLayout.footerVisible).toBe(false);
 
   const sidebarToggle = page.getByRole('button', { name:'장소 사이드바 접기' });
+  const sidebarToggleElement = page.locator('.ranking-sidebar-toggle');
   const expandedPanelRect = await page.locator('.ranking-results-panel').evaluate(element => {
     const rect = element.getBoundingClientRect();
     return { top:Math.round(rect.top), left:Math.round(rect.left), width:Math.round(rect.width) };
   });
+  await expect(sidebarToggleElement).toHaveCSS('padding', '7px 0px 0px');
   await sidebarToggle.click();
   await expect(page.locator('.ranking-results-panel')).toHaveAttribute('data-sidebar-state', 'collapsed');
+  await expect(sidebarToggleElement).toHaveCSS('padding', '0px 0px 15px');
   await expect.poll(() => page.locator('.ranking-results-panel').evaluate(element => {
     const rect = element.getBoundingClientRect();
     return { top:Math.round(rect.top), left:Math.round(rect.left), width:Math.round(rect.width), height:Math.round(rect.height) };
