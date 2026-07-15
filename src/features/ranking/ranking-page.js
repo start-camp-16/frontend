@@ -26,17 +26,24 @@ export function mountRankingPage(
   const [districtSelect, categorySelect] = form.querySelectorAll('select');
   const submit = form.querySelector('button');
   let rankingMap;
+  let tileErrorVisible = false;
 
-  function renderTileError() {
+  function renderTileStatus({ failed }) {
+    if (!failed) {
+      if (tileErrorVisible) mapStatus.replaceChildren();
+      tileErrorVisible = false;
+      return;
+    }
+    tileErrorVisible = true;
     mapStatus.replaceChildren();
     const message = document.createElement('span'); message.textContent = '지도를 불러오지 못했습니다.';
     const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = '지도 다시 시도';
-    retry.addEventListener('click', () => { mapStatus.replaceChildren(); rankingMap.retryTiles(); });
+    retry.addEventListener('click', () => { tileErrorVisible = false; mapStatus.replaceChildren(); rankingMap.retryTiles(); });
     mapStatus.append(message, retry);
   }
 
   const adapter = mapFactory === createRankingMap
-    ? adapterFactory(mapContainer, { onTileError: renderTileError })
+    ? adapterFactory(mapContainer, { onTileStatusChange: renderTileStatus })
     : undefined;
   rankingMap = mapFactory({ container: mapContainer, adapter, onSelect:id => selectItem(id, { source:'marker' }) });
 
