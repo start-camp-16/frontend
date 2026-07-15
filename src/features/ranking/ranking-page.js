@@ -70,6 +70,10 @@ export function mountRankingPage(
     select.disabled = false;
   }
 
+  function renderSelectionPrompt() {
+    renderAsyncState(status, { kind:'error', message:'구와 카테고리를 모두 선택해 주세요.' });
+  }
+
   async function loadRankings() {
     if (!districtSelect.value || !categorySelect.value) return;
     recommendation.hidden = true;
@@ -101,6 +105,7 @@ export function mountRankingPage(
       fill(districtSelect, districts, state.district); fill(categorySelect, categories, state.category);
       submit.disabled = false; status.replaceChildren();
       if (districtSelect.value && categorySelect.value) await loadRankings();
+      else renderSelectionPrompt();
     } catch (error) {
       if (error.name !== 'AbortError') renderAsyncState(status, { kind:'error', message:error.message, onRetry:loadMeta });
     }
@@ -109,7 +114,7 @@ export function mountRankingPage(
   function onSubmit(event) {
     event.preventDefault();
     if (!districtSelect.value || !categorySelect.value) {
-      renderAsyncState(status, { kind:'error', message:'구와 카테고리를 모두 선택해 주세요.' }); return;
+      renderSelectionPrompt(); return;
     }
     navigate(`/?${toRankingQuery({ district:districtSelect.value, category:categorySelect.value })}`);
   }

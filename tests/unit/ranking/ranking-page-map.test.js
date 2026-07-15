@@ -13,6 +13,7 @@ const items = [
 ];
 
 beforeEach(() => {
+  vi.clearAllMocks();
   api.getCategories.mockResolvedValue(['문화시설']);
   api.getDistricts.mockResolvedValue(['마포구']);
   api.getRankings.mockResolvedValue({ district:'마포구', category:'문화시설', items });
@@ -48,6 +49,21 @@ it('목록과 마커 선택을 같은 content_id로 동기화한다', async () =
   expect(outlet.querySelector('#map-status').textContent).toContain('지도 위치 정보가 없습니다');
   cleanup();
   expect(map.destroy).toHaveBeenCalledOnce();
+});
+
+it('초기 선택값이 없으면 구와 카테고리 선택 안내를 표시한다', async () => {
+  const map = { setItems:vi.fn(() => 0), select:vi.fn(), destroy:vi.fn(), invalidateSize:vi.fn(), retryTiles:vi.fn() };
+  const outlet = document.body.appendChild(document.createElement('main'));
+  const cleanup = mountRankingPage({
+    outlet,
+    query:new URLSearchParams(),
+    signal:new AbortController().signal,
+    navigate:vi.fn(),
+  }, { mapFactory:vi.fn(() => map) });
+
+  await vi.waitFor(() => expect(outlet.querySelector('#ranking-status').textContent).toContain('구와 카테고리를 모두 선택해 주세요.'));
+  expect(api.getRankings).not.toHaveBeenCalled();
+  cleanup();
 });
 
 it('장소가 없으면 AI 추천 안내를 표시하지 않는다', async () => {
