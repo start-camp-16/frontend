@@ -4,7 +4,7 @@
 
 .board-page-head h1 {
   margin: .4rem 0 .55rem;
-  font-size: clamp(2rem, 4vw, 3.35rem);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
   letter-spacing: -.045em;
 }
 
@@ -508,7 +508,7 @@
 
 @media (max-width: 600px) {
   .board-page-head h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
 
   .editor-form__filters {
