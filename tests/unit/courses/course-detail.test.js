@@ -48,8 +48,9 @@ it('전체 공유 링크를 클립보드에 복사한다', async () => {
 });
 
 it('거리를 숨기고 비밀번호 오류 뒤에도 편집 초안을 유지해 수정·삭제한다', async () => {
-  const root = document.createElement('div'); const app = startApp({ root });
+  const root = document.createElement('div'); document.body.append(root); const app = startApp({ root });
   await vi.waitFor(() => expect(root.textContent).toContain('마포 하루 코스'));
+  expect(document.activeElement).toBe(root.querySelector('h1'));
   expect(root.textContent).not.toMatch(/1900|900|1000|거리|시간/);
   root.querySelector('[data-edit-course]').click();
   root.querySelector('[aria-label="하늘공원 위로"]').click();

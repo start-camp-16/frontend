@@ -21,7 +21,7 @@ export function mountCourseDetailPage({ outlet, params, signal, navigate }) {
   const root = outlet.querySelector('#course-detail'); let course; let editDraft = [];
 
   function renderRead() {
-    root.innerHTML = `<article class="course-detail"><header class="course-detail__header"><div><p class="eyebrow">Shared Seoul course</p><h1 class="page-title"></h1><p class="course-detail__date"></p></div><div class="course-detail__actions"><button type="button" class="button button--secondary" data-copy-course>링크 복사</button><button type="button" class="button button--secondary" data-edit-course>수정</button><button type="button" data-delete-course>삭제</button></div></header><p class="course-copy-status" aria-live="polite"></p><section class="course-detail__stops panel" aria-labelledby="shared-course-stops"><p class="course-step">방문 순서</p><h2 id="shared-course-stops">이 순서로 둘러보세요</h2><div data-read-stops></div></section></article>`;
+    root.innerHTML = `<article class="course-detail"><header class="course-detail__header"><div><p class="eyebrow">Shared Seoul course</p><h1 class="page-title" tabindex="-1"></h1><p class="course-detail__date"></p></div><div class="course-detail__actions"><button type="button" class="button button--secondary" data-copy-course>링크 복사</button><button type="button" class="button button--secondary" data-edit-course>수정</button><button type="button" data-delete-course>삭제</button></div></header><p class="course-copy-status" aria-live="polite"></p><section class="course-detail__stops panel" aria-labelledby="shared-course-stops"><p class="course-step">방문 순서</p><h2 id="shared-course-stops">이 순서로 둘러보세요</h2><div data-read-stops></div></section></article>`;
     root.querySelector('h1').textContent = course.title;
     root.querySelector('.course-detail__date').textContent = `만든 날 ${formatDate(course.created_at)}${course.updated_at !== course.created_at ? ` · 수정 ${formatDate(course.updated_at)}` : ''}`;
     renderCourseStops(root.querySelector('[data-read-stops]'), course.stops);
@@ -33,6 +33,7 @@ export function mountCourseDetailPage({ outlet, params, signal, navigate }) {
     });
     root.querySelector('[data-edit-course]').addEventListener('click', renderEdit);
     root.querySelector('[data-delete-course]').addEventListener('click', event => confirmDelete(event.currentTarget));
+    root.querySelector('h1').focus();
   }
 
   function renderEdit() {

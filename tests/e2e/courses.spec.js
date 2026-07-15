@@ -19,6 +19,7 @@ async function mockCourses(page) {
     if (method === 'DELETE') return route.fulfill({ status: 204, body: '' });
     if (method === 'PUT') {
       const body = route.request().postDataJSON(); title = body.title;
+      if (body.password === '0000') return route.fulfill({ status: 403, json: { code: 'PASSWORD_MISMATCH', message: '불일치' } });
       orderedStops = body.location_content_ids.map((id, index) => ({ position: index + 1, location: [...stops.map(stop => stop.location), extraLocation].find(location => location.content_id === id) }));
     }
     return route.fulfill({ json: { public_id: publicId, title, created_at: '2026-07-15T00:00:00Z', updated_at: method === 'PUT' ? '2026-07-15T01:00:00Z' : '2026-07-15T00:00:00Z', stops: orderedStops, total_straight_line_distance_meters: 1900 } });
@@ -58,6 +59,10 @@ test('코스를 생성하고 공유 페이지에서 수정·삭제한다', async
   await page.getByRole('button', { name: '수정', exact: true }).click();
   await page.getByRole('button', { name: '하늘공원 위로' }).click();
   await page.getByLabel('코스 제목').fill('수정된 마포 하루');
+  await page.getByLabel('수정 비밀번호').fill('0000');
+  await page.getByRole('button', { name: '변경 내용 저장' }).click();
+  await expect(page.getByText('비밀번호가 일치하지 않습니다.')).toBeVisible();
+  await expect(page.locator('[data-course-stop]').first()).toHaveAttribute('data-course-stop', '2');
   await page.getByLabel('수정 비밀번호').fill('1234');
   await page.getByRole('button', { name: '변경 내용 저장' }).click();
   await expect(page.getByRole('heading', { name: '수정된 마포 하루' })).toBeVisible();
@@ -98,4 +103,22 @@ test('후보 부족과 없는 공유 코스에서 다음 행동을 안내한다'
   await page.goto(`/courses/${publicId}`);
   await expect(page.getByRole('heading', { name: '코스를 찾을 수 없습니다' })).toBeVisible();
   await expect(page.getByRole('link', { name: '새 코스 만들기' })).toBeVisible();
+});
+
+test('네트워크 실패 뒤 같은 추천 요청을 다시 시도한다', async ({ page }) => {
+  let attempts = 0;
+  await page.unroute('**/api/course-suggestions');
+  await page.route('**/api/course-suggestions', route => {
+    attempts += 1;
+    if (attempts === 1) return route.abort('failed');
+    return route.fulfill({ json: { district: '마포구', categories: ['관광지'], stops, total_straight_line_distance_meters: 1900 } });
+  });
+  await page.goto('/courses');
+  await page.getByLabel('어느 구에서?').selectOption('마포구');
+  await page.getByLabel('관광지').check();
+  await page.getByRole('button', { name: '코스 초안 만들기' }).click();
+  await expect(page.getByText('요청을 처리할 수 없습니다.')).toBeVisible();
+  await page.getByRole('button', { name: '다시 시도' }).click();
+  await expect(page.getByText('문화비축기지')).toBeVisible();
+  expect(attempts).toBe(2);
 });
