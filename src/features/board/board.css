@@ -173,6 +173,120 @@
   margin-bottom: .7rem;
 }
 
+.district-dialog {
+  width: min(40rem, calc(100% - 2rem));
+  max-height: min(44rem, calc(100dvh - 2rem));
+  padding: 0;
+  border: 0;
+  border-radius: 1.5rem;
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, .28);
+}
+
+.district-dialog::backdrop {
+  background: rgba(15, 23, 42, .48);
+  backdrop-filter: blur(3px);
+}
+
+.district-dialog__surface {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: min(44rem, calc(100dvh - 2rem));
+  background: #fff;
+}
+
+.district-dialog__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.district-dialog__head h2,
+.district-dialog__head p {
+  margin: 0;
+}
+
+.district-dialog__head h2 {
+  margin: .25rem 0;
+}
+
+.district-dialog__close {
+  align-self: start;
+  min-width: 2.5rem;
+  padding: .45rem;
+  color: var(--muted);
+  background: transparent;
+  font-size: 1.5rem;
+}
+
+.district-dialog__scroll {
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.district-dialog__group-label {
+  margin: 0 0 .75rem;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.district-option-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+
+.district-option-grid button {
+  padding: .65rem .9rem;
+  border: 1px solid #dbe2ea;
+  border-radius: 999px;
+  color: #475569;
+  background: #fff;
+  box-shadow: none;
+}
+
+.district-option-grid button[aria-pressed="true"] {
+  border-color: var(--primary);
+  color: #fff;
+  background: var(--primary);
+}
+
+.district-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.district-dialog-actions button {
+  min-height: 3rem;
+  border-radius: 999px;
+}
+
+@media (max-width: 600px) {
+  .district-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: 88dvh;
+    margin: auto 0 0;
+    border-radius: 1.5rem 1.5rem 0 0;
+  }
+
+  .district-dialog__surface {
+    max-height: 88dvh;
+  }
+
+  .district-dialog__head,
+  .district-dialog__scroll,
+  .district-dialog-actions {
+    padding-inline: 1rem;
+  }
+}
+
 @media (min-width: 900px) {
   .section-head {
     align-items: center;
