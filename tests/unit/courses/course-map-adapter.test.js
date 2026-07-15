@@ -74,3 +74,24 @@ it('선택 스타일, 레이어 정리, 타일 재시도와 지도 제거를 위
   expect(leaflet.default.tileLayer).toHaveBeenCalledTimes(2);
   expect(leaflet.mapInstance.remove).toHaveBeenCalledOnce();
 });
+
+it('동일 좌표 마커의 픽셀 offset을 기본·활성 아이콘과 팝업에 유지한다', () => {
+  const adapter = createCourseLeafletAdapter(document.body);
+  const marker = adapter.addMarker(
+    { location: { content_id: '3', title: '망원시장' } },
+    2,
+    [37.5, 127],
+    vi.fn(),
+    { x: 24, y: -8 },
+  );
+  expect(leaflet.default.divIcon).toHaveBeenLastCalledWith(expect.objectContaining({
+    iconAnchor: [-9, 46],
+    popupAnchor: [24, -42],
+  }));
+
+  adapter.selectMarker(marker, true);
+  expect(leaflet.default.divIcon).toHaveBeenLastCalledWith(expect.objectContaining({
+    iconAnchor: [-5, 54],
+    popupAnchor: [24, -50],
+  }));
+});
