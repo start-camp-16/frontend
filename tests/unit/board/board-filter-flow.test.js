@@ -57,7 +57,10 @@ it('게시글 API에 기본 표시 개수 10을 전달한다', async () => {
 it('유효한 표시 개수를 선택 상자와 게시글 API에 반영한다', async () => {
   const { outlet } = mount('size=20');
   await vi.waitFor(() => expect(getPosts).toHaveBeenCalled());
-  expect(outlet.querySelector('[name="page-size"]').value).toBe('20');
+  const select = outlet.querySelector('[name="page-size"]');
+  expect(select.value).toBe('20');
+  expect(select.getAttribute('aria-label')).toBe('페이지당 표시 개수');
+  expect(outlet.querySelector('.board-page-size span')).toBeNull();
   expect(getPosts).toHaveBeenCalledWith(expect.objectContaining({ size: 20 }));
 });
 

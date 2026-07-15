@@ -56,12 +56,11 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
           <button>검색</button>
         </form>
         <div class="board-list-toolbar">
-          <label class="board-page-size" for="post-page-size">
-            <span>페이지당 표시 개수</span>
-            <select id="post-page-size" name="page-size">
+          <div class="board-page-size">
+            <select id="post-page-size" name="page-size" aria-label="페이지당 표시 개수">
               ${PAGE_SIZES.map((pageSize) => `<option value="${pageSize}"${pageSize === size ? ' selected' : ''}>${pageSize}개씩 보기</option>`).join('')}
             </select>
-          </label>
+          </div>
         </div>
         <div id="board-state" aria-live="polite"></div>
         <div id="post-list" class="post-list"></div>
