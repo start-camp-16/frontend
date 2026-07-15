@@ -41,6 +41,10 @@ it('목록과 마커 선택을 같은 content_id로 동기화한다', async () =
   await vi.waitFor(() => expect(map.setItems).toHaveBeenCalledWith(items));
   expect(outlet.querySelector('#ranking-recommendation').textContent).toBe('AI가 추천한 장소 TOP 2입니다.');
   expect(outlet.querySelector('#ranking-recommendation').hidden).toBe(false);
+  const recommendationBox = outlet.querySelector('.ranking-recommendation-box');
+  expect(recommendationBox.contains(outlet.querySelector('#ranking-recommendation'))).toBe(true);
+  expect(recommendationBox.contains(outlet.querySelector('#ranking-result-count'))).toBe(true);
+  expect(recommendationBox.textContent).toContain('2곳');
   expect(api.getRankings).toHaveBeenCalledWith(expect.not.objectContaining({ page:expect.anything(), size:expect.anything() }));
   expect(outlet.querySelector('#ranking-pagination')).toBeNull();
   outlet.querySelector('[data-content-id="1"]').click();
@@ -48,7 +52,7 @@ it('목록과 마커 선택을 같은 content_id로 동기화한다', async () =
   expect(outlet.querySelector('[data-content-id="1"]').getAttribute('aria-current')).toBe('true');
 
   markerSelect('1');
-  expect(map.select).toHaveBeenLastCalledWith('1', { focus:false });
+  expect(map.select).toHaveBeenLastCalledWith('1', { focus:true });
   expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block:'nearest' });
 
   outlet.querySelector('[data-content-id="2"]').click();

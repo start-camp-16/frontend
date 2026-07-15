@@ -52,6 +52,7 @@ describe('createRankingMap', () => {
     expect(onSelect).toHaveBeenCalledWith('7');
     expect(map.select('7')).toBe(true);
     expect(adapter.selectMarker).toHaveBeenCalled(); expect(adapter.openPopup).toHaveBeenCalled();
+    expect(adapter.setView).toHaveBeenLastCalledWith([37.5, 127], 15, { animate:true });
     map.destroy(); expect(adapter.destroy).toHaveBeenCalledOnce();
   });
 });

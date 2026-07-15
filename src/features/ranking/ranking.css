@@ -10,9 +10,11 @@
 .ranking-filter select, .ranking-filter button { min-height: 48px; }
 .ranking-filter button { min-width: 8.5rem; }
 .ranking-results-panel { position: absolute; z-index: 500; top: 12.5rem; bottom: 1.5rem; left: 1.5rem; width: min(370px, 34vw); display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; border: 1px solid rgba(223, 228, 238, .92); border-radius: 18px; background: rgba(255, 255, 255, .96); box-shadow: 0 18px 48px rgba(20, 38, 70, .2); backdrop-filter: blur(14px); }
-.ranking-sheet-header { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .5rem; padding: .85rem .9rem .55rem; }
+.ranking-sheet-header { padding: .85rem .9rem .55rem; }
 .ranking-sheet-toggle { display: none; }
-.ranking-result-count { color: var(--primary); font-size: .78rem; font-weight: 900; }
+.ranking-recommendation-box { display: flex; align-items: center; justify-content: space-between; gap: .65rem; width: fit-content; max-width: 100%; padding: .55rem .7rem; border: 1px solid #c9d9ff; border-radius: 10px; background: #edf4ff; }
+.ranking-recommendation-box[hidden] { display: none; }
+.ranking-result-count { flex: none; padding: .18rem .45rem; border-radius: 999px; background: #fff; color: var(--primary); font-size: .74rem; font-weight: 900; }
 .ranking-sheet-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 .75rem .75rem; }
 .ranking-sheet-content .async-state { background: rgba(255,255,255,.86); }
 .ranking-recommendation { margin: 0; color: var(--primary-dark); font-size: .92rem; font-weight: 900; letter-spacing: -.01em; }
@@ -55,7 +57,8 @@ body.ranking-map-active .chat-panel { z-index: 699; }
   .ranking-filter button { grid-column: 1 / -1; min-height: 42px; min-width: 0; padding: .6rem; }
   .ranking-results-panel { top: auto; right: .5rem; bottom: .5rem; left: .5rem; width: auto; height: 116px; border-radius: 20px; transition: height .25s ease; }
   .ranking-results-panel[data-sheet-state="expanded"] { height: min(52vh, 430px); }
-  .ranking-sheet-header { position: relative; grid-template-columns: minmax(0, 1fr) auto; padding: 1.65rem 1rem .55rem; }
+  .ranking-sheet-header { position: relative; padding: 1.65rem 1rem .55rem; }
+  .ranking-recommendation-box { width: 100%; padding: .48rem .62rem; }
   .ranking-sheet-toggle { position: absolute; top: 0; left: 0; display: flex; justify-content: center; width: 100%; height: 1.55rem; padding: 0; border-radius: 20px 20px 0 0; background: transparent; touch-action: none; }
   .ranking-sheet-toggle:hover { background: rgba(49,92,253,.05); }
   .ranking-sheet-handle { display: block; width: 42px; height: 5px; margin-top: .5rem; border-radius: 999px; background: #b5bfd2; }

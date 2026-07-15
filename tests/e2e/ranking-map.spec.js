@@ -22,6 +22,9 @@ test('전체 마커와 목록 선택을 양방향 동기화한다', async ({ pag
   await page.setViewportSize({ width:1440,height:900 });
   await page.goto('/?district=마포구&category=문화시설');
   await expect(page.locator('.ranking-marker')).toHaveCount(2);
+  const recommendationBox = page.locator('.ranking-recommendation-box');
+  await expect(recommendationBox).toContainText('AI가 추천한 장소 TOP 3입니다.');
+  await expect(recommendationBox).toContainText('3곳');
   await expect(page.getByText('OpenStreetMap')).toBeVisible();
   await expect(page.locator('.leaflet-top.leaflet-right .leaflet-control-zoom')).toBeVisible();
   const markersClearPanel = await page.evaluate(() => {
