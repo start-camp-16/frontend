@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createRankingMap, toCoordinate } from '../../../src/features/ranking/ranking-map.js';
+import { createRankingMap, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, toCoordinate } from '../../../src/features/ranking/ranking-map.js';
 
 describe('toCoordinate', () => {
   it('유효한 좌표를 Leaflet 순서로 반환한다', () => {
@@ -34,7 +34,9 @@ describe('createRankingMap', () => {
   it('마커 수에 따라 빈 상태, 단일 중심, bounds를 선택한다', () => {
     const adapter = fakeAdapter();
     const map = createRankingMap({ container:document.body, adapter });
+    expect(adapter.setView).toHaveBeenCalledWith(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
     expect(map.setItems([{ content_id:'x', latitude:null, longitude:null }])).toBe(0);
+    expect(adapter.setView).toHaveBeenLastCalledWith(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
     map.setItems([{ content_id:'1', latitude:37.5, longitude:127 }]);
     expect(adapter.setView).toHaveBeenCalledWith([37.5, 127], 14);
     map.setItems([{ content_id:'1', latitude:37.5, longitude:127 }, { content_id:'2', latitude:37.6, longitude:127.1 }]);

@@ -4,6 +4,18 @@ import 'leaflet/dist/leaflet.css';
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
+export function createTileLoadCycleReporter(onStatusChange = () => {}) {
+  let loaded = 0;
+  let failed = 0;
+
+  return {
+    start() { loaded = 0; failed = 0; },
+    success() { loaded += 1; },
+    failure() { failed += 1; },
+    finish() { onStatusChange({ failed: failed > 0 && loaded === 0 }); },
+  };
+}
+
 function markerIcon(active = false) {
   return L.divIcon({
     className: `ranking-marker${active ? ' ranking-marker--active' : ''}`,
@@ -14,15 +26,19 @@ function markerIcon(active = false) {
   });
 }
 
-export function createLeafletAdapter(container, { onTileError = () => {} } = {}) {
+export function createLeafletAdapter(container, { onTileStatusChange = () => {} } = {}) {
   const map = L.map(container, { zoomControl: false, attributionControl: true });
   L.control.zoom({ position:'topright' }).addTo(map);
   let tileLayer;
   const markers = new Set();
 
   function addTiles() {
+    const reporter = createTileLoadCycleReporter(onTileStatusChange);
     tileLayer = L.tileLayer(TILE_URL, { attribution: ATTRIBUTION, maxZoom: 19 });
-    tileLayer.on('tileerror', onTileError);
+    tileLayer.on('loading', () => reporter.start());
+    tileLayer.on('tileload', () => reporter.success());
+    tileLayer.on('tileerror', () => reporter.failure());
+    tileLayer.on('load', () => reporter.finish());
     tileLayer.addTo(map);
   }
   addTiles();

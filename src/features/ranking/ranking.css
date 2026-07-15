@@ -1,21 +1,23 @@
 .ranking-hero { padding-bottom: 2.5rem; }
 .ranking-hero span { color: var(--primary); }
-.ranking-workspace { padding: clamp(1rem, 3vw, 2rem); }
+.ranking-workspace { width: min(92rem, calc(100vw - 2rem)); margin-left: 50%; padding: clamp(1rem, 3vw, 2rem); transform: translateX(-50%); }
 .ranking-filter { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end; margin-bottom: 1.4rem; }
 .ranking-filter label { display: grid; gap: .5rem; font-weight: 800; }
 .ranking-filter button { min-height: 46px; }
 
-.ranking-explorer { position: relative; min-height: 520px; height: min(70vh, 720px); overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #dcead9; }
+.ranking-explorer { position: relative; min-height: 640px; height: clamp(640px, 78vh, 840px); overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #dcead9; }
 .ranking-map { position: absolute; inset: 0; z-index: 0; }
-.ranking-results-panel { position: absolute; z-index: 500; inset: 1rem auto 1rem 1rem; width: min(420px, 40%); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: .65rem; padding: .8rem; overflow: hidden; border: 1px solid rgba(223, 228, 238, .9); border-radius: 16px; background: rgba(255, 255, 255, .94); box-shadow: 0 18px 48px rgba(20, 38, 70, .18); backdrop-filter: blur(14px); }
+.ranking-results-panel { position: absolute; z-index: 500; inset: 1rem auto 1rem 1rem; width: min(420px, 40%); display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: .65rem; padding: .8rem; overflow: hidden; border: 1px solid rgba(223, 228, 238, .9); border-radius: 16px; background: rgba(255, 255, 255, .94); box-shadow: 0 18px 48px rgba(20, 38, 70, .18); backdrop-filter: blur(14px); }
 .ranking-results-panel .place-grid { overflow-y: auto; overscroll-behavior: contain; padding-right: .25rem; }
 .ranking-results-panel .async-state { background: rgba(255,255,255,.84); }
 .ranking-results-panel .pagination { margin-top: .4rem; }
+.ranking-recommendation { margin: 0; padding: .7rem .85rem; border: 1px solid rgba(49, 92, 253, .2); border-radius: 11px; background: linear-gradient(135deg, rgba(49, 92, 253, .12), rgba(107, 76, 230, .07)); color: var(--primary-dark); font-size: .86rem; font-weight: 900; letter-spacing: -.01em; }
+.ranking-recommendation::before { content: "✦"; margin-right: .45rem; color: var(--primary); }
 .map-status { position: absolute; z-index: 600; right: 1rem; top: 1rem; display: flex; align-items: center; gap: .6rem; max-width: min(28rem, calc(100% - 3rem)); padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.94); box-shadow: var(--shadow); color: var(--muted); font-size: .84rem; }
 .map-status:empty { display: none; }
 .map-status button { padding: .45rem .65rem; font-size: .78rem; }
 
-.place-grid { display: grid; gap: .65rem; }
+.place-grid { display: grid; grid-auto-rows: max-content; align-content: start; gap: .65rem; }
 .place-card { width: 100%; display: grid; grid-template-columns: 2.8rem 5.4rem 1fr; gap: .8rem; align-items: center; padding: .75rem; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); color: var(--text); box-shadow: none; text-align: left; }
 .place-card:hover { background: #f8faff; border-color: #aebdf6; }
 .place-card[aria-current="true"] { background: #f1f5ff; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(49,92,253,.13); }
@@ -35,12 +37,13 @@
 .leaflet-control-attribution { font-size: 10px; }
 
 @media (max-width: 720px) {
+  .ranking-workspace { width: 100%; margin-left: 0; transform: none; }
   .ranking-filter { grid-template-columns: 1fr; }
-  .ranking-explorer { height: auto; min-height: 0; display: grid; grid-template-rows: 320px auto; overflow: visible; background: transparent; border: 0; gap: .85rem; }
-  .ranking-map { position: relative; inset: auto; width: 100%; height: 320px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-  .ranking-results-panel { position: static; inset: auto; width: 100%; max-height: none; padding: 0; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
+  .ranking-explorer { height: auto; min-height: 0; display: grid; grid-template-areas: "results" "map"; grid-template-rows: auto 360px; overflow: visible; background: transparent; border: 0; gap: .85rem; }
+  .ranking-map { position: relative; grid-area: map; inset: auto; width: 100%; height: 360px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .ranking-results-panel { position: static; grid-area: results; inset: auto; width: 100%; max-height: none; padding: 0; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
   .ranking-results-panel .place-grid { overflow: visible; padding: 0; }
-  .map-status { top: .7rem; right: .7rem; left: .7rem; max-width: none; }
+  .map-status { grid-area: map; top: .7rem; right: .7rem; left: .7rem; max-width: none; }
 }
 
 @media (max-width: 480px) {

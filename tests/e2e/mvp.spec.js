@@ -5,7 +5,7 @@ async function mockApi(page) {
   await page.route('**/api/meta/districts', route => route.fulfill({ json: { items: ['마포구', '중구'] } }));
   await page.route('**/api/rankings**', route => route.fulfill({ json: {
     items: [{ rank: 1, content_id: '1', category: '문화시설', title: '문화비축기지', address: '서울 마포구', district: '마포구', image_url: null, thumbnail_url: null, phone: null, source_order: 1 }],
-    pagination: { page: 1, size: 20, total_items: 1, total_pages: 1 },
+    district: '마포구', category: '문화시설',
   } }));
   await page.route('**/api/posts**', route => route.fulfill({ json: { items: [{ id: 1, district: '마포구', prefix: '자유', title: '마포 산책 후기', created_at: '2026-07-14T09:00:00Z', updated_at: '2026-07-14T09:00:00Z' }], pagination: { page: 1, size: 20, total_items: 1, total_pages: 1 } } }));
   await page.route('**/api/posts/1', route => route.fulfill({ json: { id: 1, district: '마포구', prefix: '자유', title: '마포 산책 후기', content: '좋았어요.', created_at: '2026-07-14T09:00:00Z', updated_at: '2026-07-14T09:00:00Z' } }));

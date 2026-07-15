@@ -1,3 +1,6 @@
+export const DEFAULT_MAP_CENTER = [37.498024669, 127.027783974];
+export const DEFAULT_MAP_ZOOM = 14;
+
 export function toCoordinate({ latitude, longitude }) {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
   if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
@@ -13,6 +16,8 @@ export function createRankingMap({ container, onSelect = () => {}, adapter }) {
   let selectedId = null;
   let destroyed = false;
 
+  adapter.setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
+
   function setItems(items) {
     adapter.clearMarkers();
     markers.clear();
@@ -26,7 +31,8 @@ export function createRankingMap({ container, onSelect = () => {}, adapter }) {
       markers.set(id, { marker, item, coordinate });
       coordinates.push(coordinate);
     }
-    if (coordinates.length === 1) adapter.setView(coordinates[0], 14);
+    if (coordinates.length === 0) adapter.setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
+    else if (coordinates.length === 1) adapter.setView(coordinates[0], DEFAULT_MAP_ZOOM);
     else if (coordinates.length > 1) adapter.fitBounds(coordinates);
     return coordinates.length;
   }
