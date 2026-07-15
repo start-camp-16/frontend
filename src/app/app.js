@@ -6,6 +6,7 @@ import { mountPostFormPage } from '../features/board/post-form-page.js';
 import { mountPostDetailPage } from '../features/board/post-detail-page.js';
 import { mountChat } from '../features/chat/chat-controller.js';
 import { mountCourseBuilderPage } from '../features/courses/course-builder-page.js';
+import { mountCourseDetailPage } from '../features/courses/course-detail-page.js';
 
 export function startApp({ root }) {
   const { outlet, chatRoot } = renderLayout(root);
@@ -15,6 +16,7 @@ export function startApp({ root }) {
     routes: {
       ranking: mountRankingPage,
       courses: mountCourseBuilderPage,
+      'course-detail': mountCourseDetailPage,
       posts: mountBoardListPage,
       'post-new': context => mountPostFormPage(context, 'create'),
       'post-edit': context => mountPostFormPage(context, 'edit'),
