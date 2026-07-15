@@ -8,7 +8,12 @@ function actionButton(label, text, disabled, onClick) {
   return button;
 }
 
-export function renderCourseStops(container, stops, { onMove = () => {}, onRemove = () => {} } = {}) {
+export function renderCourseStops(container, stops, {
+  onMove = () => {},
+  onRemove = () => {},
+  onSelect = null,
+  selectedId = null,
+} = {}) {
   container.replaceChildren();
   const list = document.createElement('ol'); list.className = 'course-stops';
   stops.forEach((stop, index) => {
@@ -21,13 +26,24 @@ export function renderCourseStops(container, stops, { onMove = () => {}, onRemov
     const title = document.createElement('h3'); title.textContent = location.title;
     const meta = document.createElement('p'); meta.textContent = [location.category, location.address].filter(Boolean).join(' · ');
     copy.append(title, meta);
-    const actions = document.createElement('div'); actions.className = 'course-stop__actions';
-    actions.append(
-      actionButton(`${location.title} 위로`, '↑', index === 0, () => onMove(index, index - 1)),
-      actionButton(`${location.title} 아래로`, '↓', index === stops.length - 1, () => onMove(index, index + 1)),
-      actionButton(`${location.title} 삭제`, '삭제', stops.length <= 3, () => onRemove(index)),
-    );
-    item.append(number, image, copy, actions); list.append(item);
+    if (typeof onSelect === 'function') {
+      item.classList.add('course-stop--read');
+      const select = document.createElement('button');
+      select.type = 'button'; select.className = 'course-stop__select';
+      select.setAttribute('aria-label', `지도에서 ${location.title} 보기`);
+      if (String(location.content_id) === String(selectedId)) select.setAttribute('aria-current', 'true');
+      select.addEventListener('click', () => onSelect(String(location.content_id)));
+      select.append(number, image, copy); item.append(select);
+    } else {
+      const actions = document.createElement('div'); actions.className = 'course-stop__actions';
+      actions.append(
+        actionButton(`${location.title} 위로`, '↑', index === 0, () => onMove(index, index - 1)),
+        actionButton(`${location.title} 아래로`, '↓', index === stops.length - 1, () => onMove(index, index + 1)),
+        actionButton(`${location.title} 삭제`, '삭제', stops.length <= 3, () => onRemove(index)),
+      );
+      item.append(number, image, copy, actions);
+    }
+    list.append(item);
   });
   container.append(list);
   return list;

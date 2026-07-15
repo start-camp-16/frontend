@@ -28,3 +28,15 @@ it('순서 변경과 삭제 동작을 전달한다', () => {
   expect(onMove).toHaveBeenCalledWith(1, 0);
   expect(onRemove).toHaveBeenCalledWith(0);
 });
+
+it('읽기 목록을 버튼으로 렌더링하고 현재 지도 선택을 표시한다', () => {
+  const onSelect = vi.fn();
+  renderCourseStops(document.body, stops, { onSelect, selectedId: '2' });
+  const first = document.querySelector('[data-course-stop="1"] button');
+  const second = document.querySelector('[data-course-stop="2"] button');
+  expect(first?.getAttribute('aria-label')).toBe('지도에서 문화비축기지 보기');
+  expect(second?.getAttribute('aria-current')).toBe('true');
+  expect(document.querySelector('.course-stop__actions')).toBeNull();
+  first.click();
+  expect(onSelect).toHaveBeenCalledWith('1');
+});
