@@ -1,32 +1,34 @@
-.ranking-hero { padding-bottom: 2.5rem; }
-.ranking-hero span { color: var(--primary); }
-.ranking-workspace { width: min(92rem, calc(100vw - 2rem)); margin-left: 50%; padding: clamp(1rem, 3vw, 2rem); transform: translateX(-50%); }
-.ranking-filter { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end; margin-bottom: 1.4rem; }
-.ranking-filter label { display: grid; gap: .5rem; font-weight: 800; }
-.ranking-filter button { min-height: 46px; }
-
-.ranking-explorer { position: relative; min-height: 640px; height: clamp(640px, 78vh, 840px); overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #dcead9; }
+.ranking-page { width: 100%; height: 100%; }
+.ranking-explorer { position: relative; width: 100%; height: 100%; min-height: 640px; overflow: hidden; background: #dcead9; }
 .ranking-map { position: absolute; inset: 0; z-index: 0; }
-.ranking-results-panel { position: absolute; z-index: 500; inset: 1rem auto 1rem 1rem; width: min(420px, 40%); display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: .65rem; padding: .8rem; overflow: hidden; border: 1px solid rgba(223, 228, 238, .9); border-radius: 16px; background: rgba(255, 255, 255, .94); box-shadow: 0 18px 48px rgba(20, 38, 70, .18); backdrop-filter: blur(14px); }
-.ranking-results-panel .place-grid { overflow-y: auto; overscroll-behavior: contain; padding-right: .25rem; }
-.ranking-results-panel .async-state { background: rgba(255,255,255,.84); }
-.ranking-results-panel .pagination { margin-top: .4rem; }
-.ranking-recommendation { margin: 0; padding: .7rem .85rem; border: 1px solid rgba(49, 92, 253, .2); border-radius: 11px; background: linear-gradient(135deg, rgba(49, 92, 253, .12), rgba(107, 76, 230, .07)); color: var(--primary-dark); font-size: .86rem; font-weight: 900; letter-spacing: -.01em; }
+.ranking-top-panel { position: absolute; z-index: 500; top: 1.5rem; right: 1.5rem; left: 1.5rem; display: grid; grid-template-columns: minmax(26rem, 1fr) minmax(34rem, 1.15fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: center; padding: 1.6rem 2rem; background: rgba(255, 255, 255, .96); box-shadow: 0 18px 55px rgba(28, 47, 82, .2); backdrop-filter: blur(16px); }
+.ranking-hero .eyebrow { margin: 0 0 .4rem; }
+.ranking-hero .page-title { margin: 0 0 .5rem; font-size: clamp(1.8rem, 3vw, 2.7rem); white-space: nowrap; }
+.ranking-hero .lede { margin: 0; font-size: .95rem; line-height: 1.5; }
+.ranking-filter { display: grid; grid-template-columns: 1fr 1fr auto; gap: .9rem; align-items: end; margin: 0; }
+.ranking-filter label { display: grid; gap: .5rem; font-size: .9rem; font-weight: 800; }
+.ranking-filter select, .ranking-filter button { min-height: 48px; }
+.ranking-filter button { min-width: 8.5rem; }
+.ranking-results-panel { position: absolute; z-index: 500; top: 12.5rem; bottom: 1.5rem; left: 1.5rem; width: min(370px, 34vw); display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; border: 1px solid rgba(223, 228, 238, .92); border-radius: 18px; background: rgba(255, 255, 255, .96); box-shadow: 0 18px 48px rgba(20, 38, 70, .2); backdrop-filter: blur(14px); }
+.ranking-sheet-header { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .5rem; padding: .85rem .9rem .55rem; }
+.ranking-sheet-toggle { display: none; }
+.ranking-result-count { color: var(--primary); font-size: .78rem; font-weight: 900; }
+.ranking-sheet-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 .75rem .75rem; }
+.ranking-sheet-content .async-state { background: rgba(255,255,255,.86); }
+.ranking-recommendation { margin: 0; color: var(--primary-dark); font-size: .92rem; font-weight: 900; letter-spacing: -.01em; }
 .ranking-recommendation::before { content: "✦"; margin-right: .45rem; color: var(--primary); }
-.map-status { position: absolute; z-index: 600; right: 1rem; top: 1rem; display: flex; align-items: center; gap: .6rem; max-width: min(28rem, calc(100% - 3rem)); padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.94); box-shadow: var(--shadow); color: var(--muted); font-size: .84rem; }
+.map-status { position: absolute; z-index: 600; right: 1rem; top: 11.75rem; display: flex; align-items: center; gap: .6rem; max-width: min(28rem, calc(100% - 3rem)); padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.94); box-shadow: var(--shadow); color: var(--muted); font-size: .84rem; }
 .map-status:empty { display: none; }
 .map-status button { padding: .45rem .65rem; font-size: .78rem; }
-
-.place-grid { display: grid; grid-auto-rows: max-content; align-content: start; gap: .65rem; }
-.place-card { width: 100%; display: grid; grid-template-columns: 2.8rem 5.4rem 1fr; gap: .8rem; align-items: center; padding: .75rem; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); color: var(--text); box-shadow: none; text-align: left; }
+.place-grid { display: grid; grid-auto-rows: max-content; align-content: start; gap: .55rem; }
+.place-card { width: 100%; display: grid; grid-template-columns: 2rem 5.2rem 1fr; gap: .7rem; align-items: center; padding: .65rem; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); color: var(--text); box-shadow: none; text-align: left; }
 .place-card:hover { background: #f8faff; border-color: #aebdf6; }
 .place-card[aria-current="true"] { background: #f1f5ff; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(49,92,253,.13); }
-.place-card img { width: 5.4rem; height: 4.4rem; object-fit: cover; border-radius: 9px; }
-.place-card .rank-number { color: var(--primary); font-size: 1.45rem; text-align: center; }
-.place-card h3 { margin: 0 0 .25rem; font-size: .98rem; }
-.place-card p { margin: .12rem 0; color: var(--muted); font-size: .78rem; }
+.place-card img { width: 5.2rem; height: 4.1rem; object-fit: cover; border-radius: 9px; }
+.place-card .rank-number { color: var(--primary); font-size: 1.3rem; text-align: center; }
+.place-card h3 { margin: 0 0 .25rem; font-size: .92rem; }
+.place-card p { margin: .12rem 0; color: var(--muted); font-size: .75rem; }
 .map-missing { display: inline-block; margin-top: .25rem; color: #805d12; font-size: .72rem; font-weight: 800; }
-
 .ranking-marker { border: 0; background: transparent; }
 .ranking-marker span { display: block; width: 26px; height: 34px; border: 4px solid #fff; border-radius: 50% 50% 50% 5px; background: #69758d; box-shadow: 0 5px 14px rgba(20,35,65,.32); transform: rotate(-45deg); transition: transform .18s ease, background .18s ease; }
 .ranking-marker span::after { content: ""; position: absolute; width: 7px; height: 7px; left: 9px; top: 9px; border-radius: 50%; background: #fff; }
@@ -35,23 +37,36 @@
 .leaflet-popup-content strong { color: var(--text); }
 .leaflet-popup-content p { margin: .35rem 0 0; color: var(--muted); }
 .leaflet-control-attribution { font-size: 10px; }
-
+@media (max-width: 960px) and (min-width: 721px) {
+  .ranking-top-panel { grid-template-columns: 1fr; gap: 1rem; }
+  .ranking-hero .lede { display: none; }
+  .ranking-results-panel { top: 15rem; }
+  .map-status { top: 14rem; }
+}
 @media (max-width: 720px) {
-  .ranking-workspace { width: 100%; margin-left: 0; transform: none; }
-  .ranking-filter { grid-template-columns: 1fr; }
-  .ranking-explorer { height: auto; min-height: 0; display: grid; grid-template-areas: "results" "map"; grid-template-rows: auto 360px; overflow: visible; background: transparent; border: 0; gap: .85rem; }
-  .ranking-map { position: relative; grid-area: map; inset: auto; width: 100%; height: 360px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-  .ranking-results-panel { position: static; grid-area: results; inset: auto; width: 100%; max-height: none; padding: 0; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
-  .ranking-results-panel .place-grid { overflow: visible; padding: 0; }
-  .map-status { grid-area: map; top: .7rem; right: .7rem; left: .7rem; max-width: none; }
+  .ranking-explorer { min-height: 0; }
+  .ranking-top-panel { top: .7rem; right: .7rem; left: .7rem; display: block; padding: .8rem; border-radius: 16px; }
+  .ranking-hero { display: none; }
+  .ranking-filter { grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .ranking-filter label { gap: .3rem; font-size: .76rem; }
+  .ranking-filter select { min-height: 42px; padding: .55rem .65rem; }
+  .ranking-filter button { grid-column: 1 / -1; min-height: 42px; min-width: 0; padding: .6rem; }
+  .ranking-results-panel { top: auto; right: .5rem; bottom: .5rem; left: .5rem; width: auto; height: 116px; border-radius: 20px; transition: height .25s ease; }
+  .ranking-results-panel[data-sheet-state="expanded"] { height: min(52vh, 430px); }
+  .ranking-sheet-header { position: relative; grid-template-columns: minmax(0, 1fr) auto; padding: 1.65rem 1rem .55rem; }
+  .ranking-sheet-toggle { position: absolute; top: 0; left: 0; display: flex; justify-content: center; width: 100%; height: 1.55rem; padding: 0; border-radius: 20px 20px 0 0; background: transparent; touch-action: none; }
+  .ranking-sheet-toggle:hover { background: rgba(49,92,253,.05); }
+  .ranking-sheet-handle { display: block; width: 42px; height: 5px; margin-top: .5rem; border-radius: 999px; background: #b5bfd2; }
+  .ranking-recommendation { overflow: hidden; font-size: .85rem; text-overflow: ellipsis; white-space: nowrap; }
+  .ranking-sheet-content { overflow-y: auto; padding: 0 .65rem .65rem; }
+  .ranking-results-panel[data-sheet-state="collapsed"] .ranking-sheet-content { overflow: hidden; }
+  .place-card { grid-template-columns: 1.8rem 4.6rem 1fr; gap: .55rem; padding: .55rem; }
+  .place-card img { width: 4.6rem; height: 3.7rem; }
+  .place-card .rank-number { font-size: 1.1rem; }
+  .map-status { top: 10.8rem; right: .7rem; left: .7rem; max-width: none; }
+  .leaflet-top.leaflet-right { top: 10rem; }
+  .leaflet-bottom { bottom: 7.5rem; }
 }
-
-@media (max-width: 480px) {
-  .place-card { grid-template-columns: 2.2rem 4.6rem 1fr; gap: .55rem; }
-  .place-card img { width: 4.6rem; height: 4rem; }
-  .place-card .rank-number { font-size: 1.15rem; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .ranking-marker span { transition: none; }
+  .ranking-marker span, .ranking-results-panel { transition: none; }
 }

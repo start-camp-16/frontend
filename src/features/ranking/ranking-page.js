@@ -13,8 +13,9 @@ export function mountRankingPage(
   const state = parseRankingQuery(query);
   let currentItems = [];
   let selectedId = null;
+  document.body.classList.add('ranking-map-active');
 
-  outlet.innerHTML = `<section class="ranking-hero"><p class="eyebrow">Seoul city guide</p><h1 class="page-title">서울의 즐거움,<br><span>빠르게 찾아봐요.</span></h1><p class="lede">지역과 카테고리를 선택하면 지금 둘러볼 장소를 순서대로 보여드려요.</p></section><section class="ranking-workspace panel"><form class="ranking-filter"><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><label>무엇을 할까요?<select name="category" disabled><option value="">카테고리 선택</option></select></label><button disabled>장소 찾기</button></form><div class="ranking-explorer"><div id="ranking-map" class="ranking-map" role="region" aria-label="현재 랭킹 장소 지도"></div><div id="map-status" class="map-status" aria-live="polite"></div><section class="ranking-results-panel" data-sheet-state="collapsed" aria-label="장소 랭킹 목록"><div class="ranking-sheet-header"><button class="ranking-sheet-toggle" type="button" aria-controls="ranking-sheet-content" aria-expanded="false" aria-label="장소 목록 펼치기"><span class="ranking-sheet-handle" aria-hidden="true"></span></button><p id="ranking-recommendation" class="ranking-recommendation" hidden></p><span id="ranking-result-count" class="ranking-result-count" aria-live="polite"></span></div><div id="ranking-sheet-content" class="ranking-sheet-content"><div id="ranking-status" aria-live="polite"></div><div id="ranking-results" class="place-grid"></div></div></section></div></section>`;
+  outlet.innerHTML = `<section class="ranking-page"><div class="ranking-explorer"><div id="ranking-map" class="ranking-map" role="region" aria-label="현재 랭킹 장소 지도"></div><section class="ranking-top-panel panel"><div class="ranking-hero"><p class="eyebrow">Seoul city guide</p><h1 class="page-title">서울의 즐거움, 빠르게 찾아봐요.</h1><p class="lede">원하는 지역과 활동을 선택하면 지금 둘러볼 장소를 추천해드려요.</p></div><form class="ranking-filter"><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><label>무엇을 할까요?<select name="category" disabled><option value="">카테고리 선택</option></select></label><button disabled>장소 찾기</button></form></section><div id="map-status" class="map-status" aria-live="polite"></div><section class="ranking-results-panel" data-sheet-state="collapsed" aria-label="장소 랭킹 목록"><div class="ranking-sheet-header"><button class="ranking-sheet-toggle" type="button" aria-controls="ranking-sheet-content" aria-expanded="false" aria-label="장소 목록 펼치기"><span class="ranking-sheet-handle" aria-hidden="true"></span></button><p id="ranking-recommendation" class="ranking-recommendation" hidden></p><span id="ranking-result-count" class="ranking-result-count" aria-live="polite"></span></div><div id="ranking-sheet-content" class="ranking-sheet-content"><div id="ranking-status" aria-live="polite"></div><div id="ranking-results" class="place-grid"></div></div></section></div></section>`;
 
   const form = outlet.querySelector('form');
   const recommendation = outlet.querySelector('#ranking-recommendation');
@@ -175,6 +176,7 @@ export function mountRankingPage(
     sheetToggle.removeEventListener('pointerdown', onSheetPointerDown);
     sheetToggle.removeEventListener('pointerup', onSheetPointerUp);
     sheetToggle.removeEventListener('pointercancel', onSheetPointerCancel);
+    document.body.classList.remove('ranking-map-active');
     rankingMap.destroy();
   };
 }

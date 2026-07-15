@@ -19,6 +19,7 @@ async function mockMapApi(page) {
 test.beforeEach(async ({ page }) => { await mockMapApi(page); });
 
 test('전체 마커와 목록 선택을 양방향 동기화한다', async ({ page }) => {
+  await page.setViewportSize({ width:1440,height:900 });
   await page.goto('/?district=마포구&category=문화시설');
   await expect(page.locator('.ranking-marker')).toHaveCount(2);
   await expect(page.getByText('OpenStreetMap')).toBeVisible();
@@ -28,6 +29,29 @@ test('전체 마커와 목록 선택을 양방향 동기화한다', async ({ pag
     return [...document.querySelectorAll('.ranking-marker')].every(marker => marker.getBoundingClientRect().left >= panelRight);
   });
   expect(markersClearPanel).toBe(true);
+
+  const desktopLayout = await page.evaluate(() => {
+    const explorer = document.querySelector('.ranking-explorer').getBoundingClientRect();
+    const map = document.querySelector('.ranking-map').getBoundingClientRect();
+    const topPanel = document.querySelector('.ranking-top-panel').getBoundingClientRect();
+    const panel = document.querySelector('.ranking-results-panel').getBoundingClientRect();
+    return {
+      explorerHeight:explorer.height,
+      mapFillsExplorer:Math.abs(map.height - explorer.height) < 2 && Math.abs(map.width - explorer.width) < 2,
+      filterInside:topPanel.top >= explorer.top && topPanel.bottom <= explorer.bottom,
+      panelInside:panel.top >= explorer.top && panel.bottom <= explorer.bottom,
+      filterPosition:getComputedStyle(document.querySelector('.ranking-top-panel')).position,
+      panelPosition:getComputedStyle(document.querySelector('.ranking-results-panel')).position,
+      footerVisible:getComputedStyle(document.querySelector('footer')).display !== 'none',
+    };
+  });
+  expect(desktopLayout.explorerHeight).toBeGreaterThanOrEqual(800);
+  expect(desktopLayout.mapFillsExplorer).toBe(true);
+  expect(desktopLayout.filterInside).toBe(true);
+  expect(desktopLayout.panelInside).toBe(true);
+  expect(desktopLayout.filterPosition).toBe('absolute');
+  expect(desktopLayout.panelPosition).toBe('absolute');
+  expect(desktopLayout.footerVisible).toBe(false);
 
   const firstCard = page.locator('[data-content-id="a"]');
   await firstCard.click();
@@ -42,17 +66,37 @@ test('전체 마커와 목록 선택을 양방향 동기화한다', async ({ pag
   await expect(page.locator('[data-content-id="c"]')).toContainText('지도 위치 없음');
 });
 
-test('모바일에서 지도 위·목록 아래 흐름을 유지한다', async ({ page }) => {
+test('모바일에서 상단 선택창과 전체 지도 위 하단 바텀시트를 제공한다', async ({ page }) => {
   await page.setViewportSize({ width:360,height:800 });
   await page.goto('/?district=마포구&category=문화시설');
   await expect(page.locator('.ranking-marker')).toHaveCount(2);
-  const layout = await page.evaluate(() => {
+  const collapsedLayout = await page.evaluate(() => {
+    const explorer = document.querySelector('.ranking-explorer').getBoundingClientRect();
     const map = document.querySelector('.ranking-map').getBoundingClientRect();
+    const filter = document.querySelector('.ranking-filter').getBoundingClientRect();
     const panel = document.querySelector('.ranking-results-panel').getBoundingClientRect();
-    return { mapHeight:map.height, mapTop:map.top, panelBottom:panel.bottom, panelPosition:getComputedStyle(document.querySelector('.ranking-results-panel')).position, overflow:document.documentElement.scrollWidth <= innerWidth };
+    return {
+      explorerHeight:explorer.height,
+      mapHeight:map.height,
+      filterAtTop:filter.top >= explorer.top && filter.bottom < panel.top,
+      panelAtBottom:explorer.bottom - panel.bottom >= 0 && explorer.bottom - panel.bottom <= 10,
+      panelHeight:panel.height,
+      panelPosition:getComputedStyle(document.querySelector('.ranking-results-panel')).position,
+      horizontalOverflow:document.documentElement.scrollWidth <= innerWidth,
+      pageScrollLocked:getComputedStyle(document.body).overflow === 'hidden',
+    };
   });
-  expect(layout.mapHeight).toBeGreaterThanOrEqual(350);
-  expect(layout.mapTop).toBeGreaterThanOrEqual(layout.panelBottom);
-  expect(layout.panelPosition).toBe('static');
-  expect(layout.overflow).toBe(true);
+  expect(collapsedLayout.explorerHeight).toBeGreaterThanOrEqual(720);
+  expect(collapsedLayout.mapHeight).toBe(collapsedLayout.explorerHeight);
+  expect(collapsedLayout.filterAtTop).toBe(true);
+  expect(collapsedLayout.panelAtBottom).toBe(true);
+  expect(collapsedLayout.panelPosition).toBe('absolute');
+  expect(collapsedLayout.horizontalOverflow).toBe(true);
+  expect(collapsedLayout.pageScrollLocked).toBe(true);
+
+  await page.locator('.ranking-sheet-toggle').click();
+  await expect(page.locator('.ranking-results-panel')).toHaveAttribute('data-sheet-state', 'expanded');
+  await expect.poll(() => page.locator('.ranking-results-panel').evaluate(element => element.getBoundingClientRect().height))
+    .toBeGreaterThan(collapsedLayout.panelHeight + 150);
+  await expect(page.locator('.ranking-sheet-content')).toHaveCSS('overflow-y', 'auto');
 });
