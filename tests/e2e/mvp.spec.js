@@ -39,7 +39,18 @@ test('게시글을 열고 챗봇 근거를 확인한다', async ({ page }) => {
 test('360px에서 가로 스크롤 없이 챗봇을 연다', async ({ page }) => {
   await page.setViewportSize({ width:360,height:800 });
   await page.goto('/');
+  await expect(page.locator('#chat-panel')).toBeHidden();
   await page.getByRole('button', { name:'챗봇 열기' }).click();
   await expect(page.locator('#chat-panel')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const verticalBounds = await page.evaluate(() => {
+    const panel = document.querySelector('#chat-panel').getBoundingClientRect();
+    const log = document.querySelector('.chat-log').getBoundingClientRect();
+    const form = document.querySelector('#chat-panel form').getBoundingClientRect();
+    return {
+      formInsidePanel: form.bottom <= panel.bottom,
+      logBeforeForm: log.bottom <= form.top,
+    };
+  });
+  expect(verticalBounds).toEqual({ formInsidePanel:true, logBeforeForm:true });
 });
