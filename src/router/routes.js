@@ -1,5 +1,7 @@
 export const ROUTES = [
   { name: 'ranking', pattern: /^\/$/ },
+  { name: 'courses', pattern: /^\/courses$/ },
+  { name: 'course-detail', pattern: /^\/courses\/([0-9a-f]{32})$/, keys: ['publicId'] },
   { name: 'posts', pattern: /^\/posts$/ },
   { name: 'post-new', pattern: /^\/posts\/new$/ },
   { name: 'post-edit', pattern: /^\/posts\/([1-9]\d*)\/edit$/, keys: ['id'] },
