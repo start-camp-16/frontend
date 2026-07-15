@@ -36,6 +36,7 @@ it('데스크톱 상세 화면에 테마 사이드바와 넓은 본문 구조를
   expect(outlet.querySelector('.post-detail-sidebar')).not.toBeNull();
   expect(outlet.querySelector('.post-detail-main')).not.toBeNull();
   expect(outlet.querySelector('.post-detail-breadcrumb').textContent).toContain('마포구');
+  expect(outlet.querySelector('[data-breadcrumb-district]').getAttribute('href')).toBe('/posts?district=%EB%A7%88%ED%8F%AC%EA%B5%AC');
   expect(outlet.querySelector('[aria-current="page"]').textContent).toBe('맛집');
   expect(outlet.querySelector('.post-detail h1').textContent).toBe('동네 맛집을 소개해요');
   expect(mountComments).toHaveBeenCalledWith(expect.objectContaining({ postId: '7' }));

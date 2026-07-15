@@ -31,7 +31,7 @@ function renderThemeLinks(root, currentPrefix) {
 export function mountPostDetailPage({ outlet, params, signal, navigate }) {
   outlet.innerHTML = `
     <nav class="post-detail-breadcrumb" aria-label="현재 위치">
-      <a href="/posts">게시판</a><span aria-hidden="true">›</span><span data-breadcrumb-district>서울</span><span aria-hidden="true">›</span><strong data-breadcrumb-prefix>게시글</strong>
+      <a href="/posts">게시판</a><span aria-hidden="true">›</span><a href="/posts" data-breadcrumb-district>서울</a><span aria-hidden="true">›</span><strong data-breadcrumb-prefix>게시글</strong>
     </nav>
     <div class="post-detail-layout">
       <aside class="post-detail-sidebar" aria-label="게시판 테마">
@@ -73,7 +73,9 @@ export function mountPostDetailPage({ outlet, params, signal, navigate }) {
   };
 
   getPost(params.id, { signal }).then((post) => {
-    outlet.querySelector('[data-breadcrumb-district]').textContent = post.district;
+    const districtLink = outlet.querySelector('[data-breadcrumb-district]');
+    districtLink.textContent = post.district;
+    districtLink.href = `/posts?district=${encodeURIComponent(post.district)}`;
     outlet.querySelector('[data-breadcrumb-prefix]').textContent = post.prefix;
     renderThemeLinks(outlet, post.prefix);
 
