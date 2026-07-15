@@ -129,6 +129,21 @@
   white-space: nowrap;
 }
 
+.post-row-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.post-comment-count {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
 .post-row:hover strong {
   color: var(--primary);
 }

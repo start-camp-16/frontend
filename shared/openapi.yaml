@@ -523,7 +523,7 @@ components:
           $ref: '#/components/schemas/Pagination'
     PostSummary:
       type: object
-      required: [id, district, prefix, title, created_at, updated_at]
+      required: [id, district, prefix, title, created_at, updated_at, comment_count]
       properties:
         id:
           type: integer
@@ -539,6 +539,9 @@ components:
         updated_at:
           type: string
           format: date-time
+        comment_count:
+          type: integer
+          minimum: 0
     PostDetail:
       allOf:
         - $ref: '#/components/schemas/PostSummary'

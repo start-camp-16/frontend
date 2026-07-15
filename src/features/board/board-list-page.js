@@ -109,11 +109,17 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
         link.href = `/posts/${post.id}`;
         const title = document.createElement('strong');
         title.textContent = post.title;
+        const heading = document.createElement('span');
+        heading.className = 'post-row-heading';
+        const commentCount = document.createElement('span');
+        commentCount.className = 'post-comment-count';
+        commentCount.textContent = `댓글 ${post.comment_count ?? 0}`;
+        heading.append(title, commentCount);
         const meta = document.createElement('span');
         meta.className = 'post-row-meta';
         const date = new Date(post.created_at).toLocaleDateString('ko-KR');
         meta.textContent = [post.district, post.prefix, date].filter(Boolean).join(' · ');
-        link.append(title, meta);
+        link.append(heading, meta);
         list.append(link);
       });
       renderPagination(outlet.querySelector('#board-pagination'), {
