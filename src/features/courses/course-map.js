@@ -14,6 +14,27 @@ export function toCourseSegments(stops) {
   return segments;
 }
 
+export function toCourseMarkerOffsets(stops) {
+  const offsets = stops.map(() => null);
+  const groups = new Map();
+  stops.forEach((stop, index) => {
+    const coordinate = toCourseCoordinate(stop.location);
+    if (!coordinate) return;
+    const key = coordinate.join(',');
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(index);
+  });
+  groups.forEach(indices => indices.forEach((stopIndex, groupIndex) => {
+    if (indices.length === 1) {
+      offsets[stopIndex] = { x: 0, y: 0 };
+      return;
+    }
+    const angle = -Math.PI / 2 + (2 * Math.PI * groupIndex) / indices.length;
+    offsets[stopIndex] = { x: 28 * Math.cos(angle), y: 28 * Math.sin(angle) };
+  }));
+  return offsets;
+}
+
 function prefersReducedMotion() {
   return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
@@ -28,19 +49,23 @@ export function createCourseMap({ adapter, onSelect = () => {} }) {
     markers.clear();
     selectedId = null;
     const coordinates = [];
+    const uniqueCoordinates = new Map();
+    const offsets = toCourseMarkerOffsets(stops);
 
     stops.forEach((stop, index) => {
       const coordinate = toCourseCoordinate(stop.location);
       if (!coordinate) return;
       const id = String(stop.location.content_id);
-      const marker = adapter.addMarker(stop, index, coordinate, () => onSelect(id));
+      const marker = adapter.addMarker(stop, index, coordinate, () => onSelect(id), offsets[index]);
       markers.set(id, { marker, coordinate });
       coordinates.push(coordinate);
+      uniqueCoordinates.set(coordinate.join(','), coordinate);
     });
 
     toCourseSegments(stops).forEach(segment => adapter.addLine(segment));
-    if (coordinates.length === 1) adapter.setView(coordinates[0], 14);
-    else if (coordinates.length > 1) adapter.fitBounds(coordinates);
+    const viewportCoordinates = [...uniqueCoordinates.values()];
+    if (viewportCoordinates.length === 1) adapter.setView(viewportCoordinates[0], 14);
+    else if (viewportCoordinates.length > 1) adapter.fitBounds(viewportCoordinates);
     return coordinates.length;
   }
 
