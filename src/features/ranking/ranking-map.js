@@ -44,8 +44,8 @@ export function createRankingMap({ container, onSelect = () => {}, adapter }) {
     if (selectedId && markers.has(selectedId)) adapter.selectMarker(markers.get(selectedId).marker, false);
     selectedId = id;
     adapter.selectMarker(next.marker, true);
-    if (focus) adapter.setView(next.coordinate, 15, { animate: !prefersReducedMotion() });
     adapter.openPopup(next.marker);
+    if (focus) adapter.setView(next.coordinate, 15, { animate: !prefersReducedMotion() });
     return true;
   }
 

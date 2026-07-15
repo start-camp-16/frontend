@@ -53,6 +53,8 @@ describe('createRankingMap', () => {
     expect(map.select('7')).toBe(true);
     expect(adapter.selectMarker).toHaveBeenCalled(); expect(adapter.openPopup).toHaveBeenCalled();
     expect(adapter.setView).toHaveBeenLastCalledWith([37.5, 127], 15, { animate:true });
+    expect(adapter.openPopup.mock.invocationCallOrder[0])
+      .toBeLessThan(adapter.setView.mock.invocationCallOrder.at(-1));
     map.destroy(); expect(adapter.destroy).toHaveBeenCalledOnce();
   });
 });
