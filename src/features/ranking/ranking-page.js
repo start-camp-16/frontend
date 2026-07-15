@@ -14,10 +14,13 @@ export function mountRankingPage(
   let currentItems = [];
   let selectedId = null;
 
-  outlet.innerHTML = `<section class="ranking-hero"><p class="eyebrow">Seoul city guide</p><h1 class="page-title">서울의 즐거움,<br><span>빠르게 찾아봐요.</span></h1><p class="lede">지역과 카테고리를 선택하면 지금 둘러볼 장소를 순서대로 보여드려요.</p></section><section class="ranking-workspace panel"><form class="ranking-filter"><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><label>무엇을 할까요?<select name="category" disabled><option value="">카테고리 선택</option></select></label><button disabled>장소 찾기</button></form><div class="ranking-explorer"><div id="ranking-map" class="ranking-map" role="region" aria-label="현재 랭킹 장소 지도"></div><div id="map-status" class="map-status" aria-live="polite"></div><section class="ranking-results-panel" aria-label="장소 랭킹 목록"><p id="ranking-recommendation" class="ranking-recommendation" hidden></p><div id="ranking-status" aria-live="polite"></div><div id="ranking-results" class="place-grid"></div></section></div></section>`;
+  outlet.innerHTML = `<section class="ranking-hero"><p class="eyebrow">Seoul city guide</p><h1 class="page-title">서울의 즐거움,<br><span>빠르게 찾아봐요.</span></h1><p class="lede">지역과 카테고리를 선택하면 지금 둘러볼 장소를 순서대로 보여드려요.</p></section><section class="ranking-workspace panel"><form class="ranking-filter"><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><label>무엇을 할까요?<select name="category" disabled><option value="">카테고리 선택</option></select></label><button disabled>장소 찾기</button></form><div class="ranking-explorer"><div id="ranking-map" class="ranking-map" role="region" aria-label="현재 랭킹 장소 지도"></div><div id="map-status" class="map-status" aria-live="polite"></div><section class="ranking-results-panel" data-sheet-state="collapsed" aria-label="장소 랭킹 목록"><div class="ranking-sheet-header"><button class="ranking-sheet-toggle" type="button" aria-controls="ranking-sheet-content" aria-expanded="false" aria-label="장소 목록 펼치기"><span class="ranking-sheet-handle" aria-hidden="true"></span></button><p id="ranking-recommendation" class="ranking-recommendation" hidden></p><span id="ranking-result-count" class="ranking-result-count" aria-live="polite"></span></div><div id="ranking-sheet-content" class="ranking-sheet-content"><div id="ranking-status" aria-live="polite"></div><div id="ranking-results" class="place-grid"></div></div></section></div></section>`;
 
   const form = outlet.querySelector('form');
   const recommendation = outlet.querySelector('#ranking-recommendation');
+  const resultCount = outlet.querySelector('#ranking-result-count');
+  const resultsPanel = outlet.querySelector('.ranking-results-panel');
+  const sheetToggle = outlet.querySelector('.ranking-sheet-toggle');
   const status = outlet.querySelector('#ranking-status');
   const mapStatus = outlet.querySelector('#map-status');
   const results = outlet.querySelector('#ranking-results');
@@ -26,6 +29,46 @@ export function mountRankingPage(
   const submit = form.querySelector('button');
   let rankingMap;
   let tileErrorVisible = false;
+  let pointerStartY = null;
+  let suppressNextSheetClick = false;
+
+  function setSheetState(nextState) {
+    const expanded = nextState === 'expanded';
+    resultsPanel.dataset.sheetState = expanded ? 'expanded' : 'collapsed';
+    sheetToggle.setAttribute('aria-expanded', String(expanded));
+    sheetToggle.setAttribute('aria-label', expanded ? '장소 목록 접기' : '장소 목록 펼치기');
+    queueMicrotask(() => rankingMap?.invalidateSize());
+  }
+
+  function toggleSheet(event) {
+    if (suppressNextSheetClick) {
+      suppressNextSheetClick = false;
+      event.preventDefault();
+      return;
+    }
+    setSheetState(resultsPanel.dataset.sheetState === 'expanded' ? 'collapsed' : 'expanded');
+  }
+
+  function onSheetPointerDown(event) {
+    pointerStartY = event.clientY;
+  }
+
+  function onSheetPointerUp(event) {
+    if (pointerStartY === null) return;
+    const distance = event.clientY - pointerStartY;
+    pointerStartY = null;
+    if (distance <= -48) {
+      suppressNextSheetClick = true;
+      setSheetState('expanded');
+    } else if (distance >= 48) {
+      suppressNextSheetClick = true;
+      setSheetState('collapsed');
+    }
+  }
+
+  function onSheetPointerCancel() {
+    pointerStartY = null;
+  }
 
   function renderTileStatus({ failed }) {
     if (!failed) {
@@ -88,6 +131,7 @@ export function mountRankingPage(
         return;
       }
       recommendation.textContent = `AI가 추천한 장소 TOP ${data.items.length}입니다.`;
+      resultCount.textContent = `${data.items.length}곳`;
       recommendation.hidden = false;
       renderItems();
       const markerCount = rankingMap.setItems(data.items);
@@ -120,6 +164,17 @@ export function mountRankingPage(
   }
 
   form.addEventListener('submit', onSubmit);
+  sheetToggle.addEventListener('click', toggleSheet);
+  sheetToggle.addEventListener('pointerdown', onSheetPointerDown);
+  sheetToggle.addEventListener('pointerup', onSheetPointerUp);
+  sheetToggle.addEventListener('pointercancel', onSheetPointerCancel);
   loadMeta();
-  return () => { form.removeEventListener('submit', onSubmit); rankingMap.destroy(); };
+  return () => {
+    form.removeEventListener('submit', onSubmit);
+    sheetToggle.removeEventListener('click', toggleSheet);
+    sheetToggle.removeEventListener('pointerdown', onSheetPointerDown);
+    sheetToggle.removeEventListener('pointerup', onSheetPointerUp);
+    sheetToggle.removeEventListener('pointercancel', onSheetPointerCancel);
+    rankingMap.destroy();
+  };
 }

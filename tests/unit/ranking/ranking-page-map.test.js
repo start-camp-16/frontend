@@ -12,6 +12,12 @@ const items = [
   { content_id:'2', rank:2, title:'좌표 없음', address:null, phone:null, image_url:null, thumbnail_url:null, latitude:null, longitude:null },
 ];
 
+function dispatchPointer(target, type, clientY) {
+  const event = new Event(type, { bubbles:true });
+  Object.defineProperty(event, 'clientY', { value:clientY });
+  target.dispatchEvent(event);
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   api.getCategories.mockResolvedValue(['문화시설']);
@@ -49,6 +55,61 @@ it('목록과 마커 선택을 같은 content_id로 동기화한다', async () =
   expect(outlet.querySelector('#map-status').textContent).toContain('지도 위치 정보가 없습니다');
   cleanup();
   expect(map.destroy).toHaveBeenCalledOnce();
+});
+
+it('모바일 장소 목록을 접힌 상태에서 버튼으로 펼치고 다시 접는다', async () => {
+  const map = { setItems:vi.fn(() => 1), select:vi.fn(), destroy:vi.fn(), invalidateSize:vi.fn(), retryTiles:vi.fn() };
+  const outlet = document.body.appendChild(document.createElement('main'));
+  const cleanup = mountRankingPage({
+    outlet,
+    query:new URLSearchParams('district=마포구&category=문화시설'),
+    signal:new AbortController().signal,
+    navigate:vi.fn(),
+  }, { mapFactory:vi.fn(() => map) });
+
+  await vi.waitFor(() => expect(map.setItems).toHaveBeenCalledWith(items));
+  const sheet = outlet.querySelector('.ranking-results-panel');
+  const toggle = outlet.querySelector('.ranking-sheet-toggle');
+  expect(sheet.dataset.sheetState).toBe('collapsed');
+  expect(toggle.getAttribute('aria-controls')).toBe('ranking-sheet-content');
+  expect(toggle.getAttribute('aria-expanded')).toBe('false');
+
+  toggle.click();
+  expect(sheet.dataset.sheetState).toBe('expanded');
+  expect(toggle.getAttribute('aria-expanded')).toBe('true');
+
+  toggle.click();
+  expect(sheet.dataset.sheetState).toBe('collapsed');
+  expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  cleanup();
+});
+
+it('손잡이를 충분히 올리거나 내리면 장소 목록 상태를 전환한다', async () => {
+  const map = { setItems:vi.fn(() => 1), select:vi.fn(), destroy:vi.fn(), invalidateSize:vi.fn(), retryTiles:vi.fn() };
+  const outlet = document.body.appendChild(document.createElement('main'));
+  const cleanup = mountRankingPage({
+    outlet,
+    query:new URLSearchParams('district=마포구&category=문화시설'),
+    signal:new AbortController().signal,
+    navigate:vi.fn(),
+  }, { mapFactory:vi.fn(() => map) });
+
+  await vi.waitFor(() => expect(map.setItems).toHaveBeenCalledWith(items));
+  const sheet = outlet.querySelector('.ranking-results-panel');
+  const handle = outlet.querySelector('.ranking-sheet-toggle');
+
+  dispatchPointer(handle, 'pointerdown', 200);
+  dispatchPointer(handle, 'pointerup', 140);
+  expect(sheet.dataset.sheetState).toBe('expanded');
+
+  dispatchPointer(handle, 'pointerdown', 140);
+  dispatchPointer(handle, 'pointerup', 160);
+  expect(sheet.dataset.sheetState).toBe('expanded');
+
+  dispatchPointer(handle, 'pointerdown', 140);
+  dispatchPointer(handle, 'pointerup', 200);
+  expect(sheet.dataset.sheetState).toBe('collapsed');
+  cleanup();
 });
 
 it('초기 선택값이 없으면 구와 카테고리 선택 안내를 표시한다', async () => {
