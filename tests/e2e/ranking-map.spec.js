@@ -81,9 +81,16 @@ test('전체 마커와 목록 선택을 양방향 동기화한다', async ({ pag
   expect(desktopLayout.footerVisible).toBe(false);
 
   const sidebarToggle = page.getByRole('button', { name:'장소 사이드바 접기' });
+  const expandedPanelRect = await page.locator('.ranking-results-panel').evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return { top:Math.round(rect.top), left:Math.round(rect.left), width:Math.round(rect.width) };
+  });
   await sidebarToggle.click();
   await expect(page.locator('.ranking-results-panel')).toHaveAttribute('data-sidebar-state', 'collapsed');
-  await expect.poll(() => page.locator('.ranking-results-panel').evaluate(element => Math.round(element.getBoundingClientRect().width))).toBe(52);
+  await expect.poll(() => page.locator('.ranking-results-panel').evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return { top:Math.round(rect.top), left:Math.round(rect.left), width:Math.round(rect.width), height:Math.round(rect.height) };
+  })).toEqual({ ...expandedPanelRect, height:44 });
   await page.getByRole('button', { name:'장소 사이드바 펼치기' }).click();
   await expect.poll(() => page.locator('.ranking-results-panel').evaluate(element => Math.round(element.getBoundingClientRect().width))).toBe(390);
 
@@ -93,14 +100,25 @@ test('전체 마커와 목록 선택을 양방향 동기화한다', async ({ pag
   await expect(page.locator('.ranking-marker--active')).toHaveCount(1);
   await expect(page.locator('.leaflet-popup-content')).toContainText('문화비축기지');
   await expect(page.locator('.ranking-popup-image')).toBeVisible();
+  const popupImageCentered = await page.locator('.ranking-popup-image').evaluate(image => {
+    const imageRect = image.getBoundingClientRect();
+    const contentRect = image.closest('.leaflet-popup-content').getBoundingClientRect();
+    return Math.abs(imageRect.left + imageRect.width / 2 - (contentRect.left + contentRect.width / 2)) < 2;
+  });
+  expect(popupImageCentered).toBe(true);
   const overlaySpacing = await page.evaluate(() => {
     const topPanel = document.querySelector('.ranking-top-panel').getBoundingClientRect();
     const zoom = document.querySelector('.leaflet-control-zoom').getBoundingClientRect();
     const status = document.querySelector('.map-status').getBoundingClientRect();
-    return { controlsBelowPanel:zoom.top >= topPanel.bottom + 8, statusLeftOfControls:status.right <= zoom.left - 8 };
+    return {
+      controlsBelowPanel:zoom.top >= topPanel.bottom + 8,
+      statusLeftOfControls:status.right <= zoom.left - 8,
+      alignedTop:Math.abs(status.top - zoom.top) < 2,
+    };
   });
   expect(overlaySpacing.controlsBelowPanel).toBe(true);
   expect(overlaySpacing.statusLeftOfControls).toBe(true);
+  expect(overlaySpacing.alignedTop).toBe(true);
   await expectActiveMarkerCentered(page);
 
   const markers = page.locator('.ranking-marker');
