@@ -2,14 +2,15 @@ import { expect, test } from '@playwright/test';
 
 const publicId = '0123456789abcdef0123456789abcdef';
 const stops = [
-  { position: 1, distance_from_previous_meters: null, location: { content_id: '1', title: '문화비축기지', category: '문화시설', address: '서울 마포구', image_url: null, thumbnail_url: null } },
-  { position: 2, distance_from_previous_meters: 900, location: { content_id: '2', title: '하늘공원', category: '관광지', address: '서울 마포구', image_url: null, thumbnail_url: null } },
-  { position: 3, distance_from_previous_meters: 1000, location: { content_id: '3', title: '망원시장', category: '쇼핑', address: '서울 마포구', image_url: null, thumbnail_url: null } },
+  { position: 1, distance_from_previous_meters: null, location: { content_id: '1', title: '문화비축기지', category: '문화시설', address: '서울 마포구', latitude: 37.5705, longitude: 126.8948, image_url: null, thumbnail_url: null } },
+  { position: 2, distance_from_previous_meters: 900, location: { content_id: '2', title: '하늘공원', category: '관광지', address: '서울 마포구', latitude: 37.5683, longitude: 126.8855, image_url: null, thumbnail_url: null } },
+  { position: 3, distance_from_previous_meters: 1000, location: { content_id: '3', title: '망원시장', category: '쇼핑', address: '서울 마포구', latitude: 37.556, longitude: 126.906, image_url: null, thumbnail_url: null } },
 ];
-const extraLocation = { content_id: '4', title: '서울함공원', category: '관광지', address: '서울 마포구', image_url: null, thumbnail_url: null };
+const extraLocation = { content_id: '4', title: '서울함공원', category: '관광지', address: '서울 마포구', latitude: 37.5517, longitude: 126.9119, image_url: null, thumbnail_url: null };
 
 async function mockCourses(page) {
   let title = '마포 하루'; let orderedStops = stops;
+  await page.route('https://*.tile.openstreetmap.org/**', route => route.fulfill({ status: 204, body: '' }));
   await page.route('**/api/meta/districts', route => route.fulfill({ json: { items: ['마포구'] } }));
   await page.route('**/api/meta/categories', route => route.fulfill({ json: { items: ['관광지', '문화시설', '쇼핑'] } }));
   await page.route('**/api/course-suggestions', route => route.fulfill({ json: { district: '마포구', categories: ['관광지', '문화시설'], stops, total_straight_line_distance_meters: 1900 } }));
@@ -75,6 +76,65 @@ test('코스를 생성하고 공유 페이지에서 수정·삭제한다', async
   await expect(page).toHaveURL('/courses');
 });
 
+test('저장된 코스의 목록과 방문 순서 지도를 양방향으로 선택한다', async ({ page }) => {
+  await page.goto(`/courses/${publicId}`);
+  await expect(page.getByRole('region', { name: '코스 방문 순서 지도' })).toBeVisible();
+  await expect(page.locator('.course-marker')).toHaveCount(3);
+  await expect(page.locator('.course-route')).toHaveCount(2);
+
+  await page.getByRole('button', { name: '지도에서 문화비축기지 보기' }).click();
+  await expect(page.locator('.course-marker--active')).toHaveCount(1);
+  await expect(page.locator('.leaflet-popup')).toContainText('문화비축기지');
+
+  await page.locator('.course-marker').nth(1).click();
+  await expect(page.getByRole('button', { name: '지도에서 하늘공원 보기' })).toHaveAttribute('aria-current', 'true');
+  await expect(page.locator('[data-course-map-status]')).toContainText('하늘공원');
+});
+
+test('좌표가 없는 장소는 목록에 유지하고 연결선을 해당 지점에서 끊는다', async ({ page }) => {
+  const partialStops = stops.map((stop, index) => index === 1
+    ? { ...stop, location: { ...stop.location, latitude: null, longitude: null } }
+    : stop);
+  await page.unroute(`**/api/courses/${publicId}`);
+  await page.route(`**/api/courses/${publicId}`, route => route.fulfill({ json: {
+    public_id: publicId,
+    title: '일부 좌표 코스',
+    created_at: '2026-07-15T00:00:00Z',
+    updated_at: '2026-07-15T00:00:00Z',
+    stops: partialStops,
+  } }));
+
+  await page.goto(`/courses/${publicId}`);
+  await expect(page.getByRole('button', { name: /^지도에서 .* 보기$/ })).toHaveCount(3);
+  await expect(page.locator('.course-marker')).toHaveCount(2);
+  await expect(page.locator('.course-route')).toHaveCount(0);
+  await page.getByRole('button', { name: '지도에서 하늘공원 보기' }).click();
+  await expect(page.locator('[data-course-map-status]')).toContainText('지도 위치 정보가 없습니다');
+  await expect(page.getByRole('button', { name: '지도에서 하늘공원 보기' })).toHaveAttribute('aria-current', 'true');
+});
+
+test('모든 좌표가 없어도 목록과 수정 동작을 유지한다', async ({ page }) => {
+  const coordinateFreeStops = stops.map(stop => ({
+    ...stop,
+    location: { ...stop.location, latitude: null, longitude: null },
+  }));
+  await page.unroute(`**/api/courses/${publicId}`);
+  await page.route(`**/api/courses/${publicId}`, route => route.fulfill({ json: {
+    public_id: publicId,
+    title: '좌표 없는 코스',
+    created_at: '2026-07-15T00:00:00Z',
+    updated_at: '2026-07-15T00:00:00Z',
+    stops: coordinateFreeStops,
+  } }));
+
+  await page.goto(`/courses/${publicId}`);
+  await expect(page.getByRole('button', { name: /^지도에서 .* 보기$/ })).toHaveCount(3);
+  await expect(page.getByRole('region', { name: '코스 방문 순서 지도' })).toBeHidden();
+  await expect(page.locator('[data-course-map-status]')).toContainText('이 코스에는 표시할 위치 정보가 없습니다');
+  await page.getByRole('button', { name: '수정', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '코스 수정' })).toBeVisible();
+});
+
 test('360px에서도 코스 작업대에 가로 스크롤이 없다', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto('/courses');
@@ -86,6 +146,11 @@ test('360px에서도 코스 작업대에 가로 스크롤이 없다', async ({ p
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.getByRole('link', { name: '코스' })).toBeVisible();
   await page.goto(`/courses/${publicId}`);
+  const mapBox = await page.getByRole('region', { name: '코스 방문 순서 지도' }).boundingBox();
+  const listBox = await page.locator('.course-detail__list').boundingBox();
+  expect(mapBox.height).toBeGreaterThan(200);
+  expect(mapBox.y + mapBox.height).toBeLessThanOrEqual(listBox.y + 1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: '수정', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
