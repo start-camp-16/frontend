@@ -39,5 +39,8 @@ it('데스크톱 상세 화면에 테마 사이드바와 넓은 본문 구조를
   expect(outlet.querySelector('[data-breadcrumb-district]').getAttribute('href')).toBe('/posts?district=%EB%A7%88%ED%8F%AC%EA%B5%AC');
   expect(outlet.querySelector('[aria-current="page"]').textContent).toBe('맛집');
   expect(outlet.querySelector('.post-detail h1').textContent).toBe('동네 맛집을 소개해요');
+  expect(outlet.querySelector('.post-desktop-actions summary').getAttribute('aria-label')).toBe('게시글 메뉴');
+  expect(outlet.querySelector('.post-desktop-actions a').getAttribute('href')).toBe('/posts/7/edit');
+  expect(outlet.querySelector('.post-desktop-actions button').textContent).toBe('삭제');
   expect(mountComments).toHaveBeenCalledWith(expect.objectContaining({ postId: '7' }));
 });
