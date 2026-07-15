@@ -11,6 +11,7 @@
 .ranking-results-panel .place-grid { overflow-y: auto; overscroll-behavior: contain; padding-right: .25rem; }
 .ranking-results-panel .async-state { background: rgba(255,255,255,.84); }
 .ranking-results-panel .pagination { margin-top: .4rem; }
+.ranking-recommendation { margin: 0; padding: .15rem .25rem; color: var(--primary); font-size: .85rem; font-weight: 800; }
 .map-status { position: absolute; z-index: 600; right: 1rem; top: 1rem; display: flex; align-items: center; gap: .6rem; max-width: min(28rem, calc(100% - 3rem)); padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.94); box-shadow: var(--shadow); color: var(--muted); font-size: .84rem; }
 .map-status:empty { display: none; }
 .map-status button { padding: .45rem .65rem; font-size: .78rem; }

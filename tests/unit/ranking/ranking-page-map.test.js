@@ -32,6 +32,8 @@ it('목록과 마커 선택을 같은 content_id로 동기화한다', async () =
   }, { mapFactory });
 
   await vi.waitFor(() => expect(map.setItems).toHaveBeenCalledWith(items));
+  expect(outlet.querySelector('#ranking-recommendation').textContent).toBe('AI가 추천한 장소입니다');
+  expect(outlet.querySelector('#ranking-recommendation').hidden).toBe(false);
   expect(api.getRankings).toHaveBeenCalledWith(expect.not.objectContaining({ page:expect.anything(), size:expect.anything() }));
   expect(outlet.querySelector('#ranking-pagination')).toBeNull();
   outlet.querySelector('[data-content-id="1"]').click();
@@ -46,4 +48,20 @@ it('목록과 마커 선택을 같은 content_id로 동기화한다', async () =
   expect(outlet.querySelector('#map-status').textContent).toContain('지도 위치 정보가 없습니다');
   cleanup();
   expect(map.destroy).toHaveBeenCalledOnce();
+});
+
+it('장소가 없으면 AI 추천 안내를 표시하지 않는다', async () => {
+  api.getRankings.mockResolvedValueOnce({ district:'마포구', category:'문화시설', items:[] });
+  const map = { setItems:vi.fn(() => 0), select:vi.fn(), destroy:vi.fn(), invalidateSize:vi.fn(), retryTiles:vi.fn() };
+  const outlet = document.body.appendChild(document.createElement('main'));
+  const cleanup = mountRankingPage({
+    outlet,
+    query:new URLSearchParams('district=마포구&category=문화시설'),
+    signal:new AbortController().signal,
+    navigate:vi.fn(),
+  }, { mapFactory:vi.fn(() => map) });
+
+  await vi.waitFor(() => expect(outlet.querySelector('#ranking-status').textContent).toContain('선택 조건에 해당하는 장소가 없습니다.'));
+  expect(outlet.querySelector('#ranking-recommendation').hidden).toBe(true);
+  cleanup();
 });
