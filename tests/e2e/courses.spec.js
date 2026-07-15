@@ -13,7 +13,7 @@ async function mockCourses(page) {
   await page.route('**/api/meta/districts', route => route.fulfill({ json: { items: ['마포구'] } }));
   await page.route('**/api/meta/categories', route => route.fulfill({ json: { items: ['관광지', '문화시설', '쇼핑'] } }));
   await page.route('**/api/course-suggestions', route => route.fulfill({ json: { district: '마포구', categories: ['관광지', '문화시설'], stops, total_straight_line_distance_meters: 1900 } }));
-  await page.route('**/api/rankings**', route => route.fulfill({ json: { items: [{ rank: 4, ...extraLocation }], pagination: { page: 1, total_pages: 1 } } }));
+  await page.route('**/api/rankings**', route => route.fulfill({ json: { district: '마포구', category: '관광지', items: [{ rank: 4, ...extraLocation }] } }));
   await page.route(`**/api/courses/${publicId}`, async route => {
     const method = route.request().method();
     if (method === 'DELETE') return route.fulfill({ status: 204, body: '' });
@@ -43,7 +43,8 @@ test('코스를 생성하고 공유 페이지에서 수정·삭제한다', async
   await expect(page.getByText('문화비축기지')).toBeVisible();
   await expect(page.getByText(/거리|시간|1900|1000|900/)).toHaveCount(0);
   await page.getByRole('button', { name: '+ 장소 추가' }).click();
-  await page.getByLabel('장소를 찾을 구').selectOption('마포구');
+  await expect(page.getByText('선택한 구: 마포구')).toBeVisible();
+  await expect(page.getByLabel('장소를 찾을 구')).toHaveCount(0);
   await page.getByLabel('장소 카테고리').selectOption('관광지');
   await page.getByRole('button', { name: '장소 찾기' }).click();
   await page.getByRole('button', { name: '추가', exact: true }).click();
