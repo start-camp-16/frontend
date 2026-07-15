@@ -1,28 +1,25 @@
 import { getCategories, getDistricts, getRankings } from '../ranking/ranking-api.js';
 import { createCourse, suggestCourse } from './course-api.js';
 import { appendStop, moveStop, removeStop, toLocationIds } from './course-state.js';
-import { validateCourse, validateCriteria } from './course-validation.js';
+import { courseErrorMessage, validateCourse, validateCriteria } from './course-validation.js';
 import { renderCourseStops, renderPlaceSearchResults } from './course-view.js';
 import { renderAsyncState } from '../../ui/async-state.js';
+import { renderPagination } from '../../ui/pagination.js';
 import './courses.css';
 
 function option(value) { const item = document.createElement('option'); item.value = value; item.textContent = value; return item; }
-function messageFor(error) {
-  if (error.code === 'COURSE_NOT_ENOUGH_LOCATIONS') return '조건에 맞는 장소가 부족합니다. 카테고리를 바꾸거나 장소 수를 줄여 주세요.';
-  return error.message || '요청을 처리할 수 없습니다.';
-}
 
 export function mountCourseBuilderPage({ outlet, signal, navigate }) {
-  outlet.innerHTML = `<section class="course-hero"><p class="eyebrow">Build a day in Seoul</p><h1 class="page-title">가까운 곳부터,<br><span>가볍게 골라봐요.</span></h1><p class="lede">지역과 관심사를 고르면 하루 코스의 방문 순서를 만들어 드려요.</p></section><section class="course-workspace"><form id="course-criteria" class="course-criteria panel"><div><p class="course-step">01 · 조건 고르기</p><h2>어디에서 무엇을 할까요?</h2></div><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><fieldset disabled><legend>관심 카테고리 <small>1~3개</small></legend><div id="course-categories" class="course-category-grid"></div></fieldset><label>방문 장소 수<select name="stop_count"><option value="3">3곳</option><option value="4">4곳</option><option value="5">5곳</option></select></label><p class="course-error" data-criteria-error role="alert"></p><button type="submit" disabled>코스 초안 만들기</button></form><section class="course-draft panel" aria-labelledby="course-draft-title"><div class="course-draft__header"><div><p class="course-step">02 · 순서 다듬기</p><h2 id="course-draft-title">나의 방문 순서</h2></div></div><div id="course-draft-status" aria-live="polite"></div><div id="course-stops"></div><div id="course-place-search"></div><div id="course-save"></div></section></section>`;
+  outlet.innerHTML = `<section class="course-hero"><p class="eyebrow">Build a day in Seoul</p><h1 class="page-title">가까운 곳부터,<br><span>가볍게 골라봐요.</span></h1><p class="lede">지역과 관심사를 고르면 하루 코스의 방문 순서를 만들어 드려요.</p></section><section class="course-workspace"><form id="course-criteria" class="course-criteria panel"><div><p class="course-step">01 · 조건 고르기</p><h2>어디에서 무엇을 할까요?</h2></div><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><fieldset disabled><legend>관심 카테고리 <small>1~3개</small></legend><div id="course-categories" class="course-category-grid"></div></fieldset><label>방문 장소 수<select name="stop_count"><option value="3">3곳</option><option value="4">4곳</option><option value="5">5곳</option></select></label><p class="course-error" data-criteria-error role="alert"></p><button type="submit" disabled>코스 초안 만들기</button></form><section class="course-draft panel" aria-labelledby="course-draft-title"><div class="course-draft__header"><div><p class="course-step">02 · 순서 다듬기</p><h2 id="course-draft-title" tabindex="-1">나의 방문 순서</h2></div></div><div id="course-draft-status" aria-live="polite"></div><div id="course-stops"></div><div id="course-place-search"></div><div id="course-save"></div></section></section>`;
   const form = outlet.querySelector('#course-criteria');
   const districtSelect = form.elements.district; const categoryFieldset = form.querySelector('fieldset');
   const categoriesRoot = form.querySelector('#course-categories'); const submit = form.querySelector('[type="submit"]');
   const criteriaError = form.querySelector('[data-criteria-error]'); const status = outlet.querySelector('#course-draft-status');
   const stopsRoot = outlet.querySelector('#course-stops'); const searchRoot = outlet.querySelector('#course-place-search'); const saveRoot = outlet.querySelector('#course-save');
-  let metadata = { districts: [], categories: [] }; let draft = []; let saveValues = { title: '', password: '' };
+  let metadata = { districts: [], categories: [] }; let draft = []; let saveValues = { title: '', password: '' }; let metadataRetry;
 
   const criteria = () => ({ district: districtSelect.value, categories: [...form.querySelectorAll('[name="categories"]:checked')].map(input => input.value), stop_count: Number(form.elements.stop_count.value) });
-  const updateSubmit = () => { submit.disabled = Object.keys(validateCriteria(criteria())).length > 0; };
+  const updateSubmit = (showError = false) => { const errors = validateCriteria(criteria()); submit.disabled = Object.keys(errors).length > 0; if (showError) criteriaError.textContent = errors.categories || errors.district || errors.stop_count || ''; };
 
   function renderSave() {
     saveRoot.replaceChildren(); if (draft.length < 3) return;
@@ -38,7 +35,7 @@ export function mountCourseBuilderPage({ outlet, signal, navigate }) {
       try {
         const course = await createCourse({ title: saveValues.title.trim(), password: saveValues.password, location_content_ids: toLocationIds(draft) }, { signal });
         saveForm.elements.password.value = ''; saveValues.password = ''; navigate(`/courses/${course.public_id}`);
-      } catch (error) { if (error.name !== 'AbortError') errorRoot.textContent = messageFor(error); }
+      } catch (error) { if (error.name !== 'AbortError') errorRoot.textContent = courseErrorMessage(error); }
       finally { button.disabled = false; saveForm.elements.password.value = ''; saveValues.password = ''; }
     });
     saveRoot.append(saveForm);
@@ -57,39 +54,44 @@ export function mountCourseBuilderPage({ outlet, signal, navigate }) {
   }
 
   function renderPlaceSearch() {
-    searchRoot.innerHTML = `<section class="course-place-search" aria-label="장소 추가"><div class="course-place-search__header"><h3>추가할 장소 찾기</h3><button type="button" class="button button--secondary" data-close-search>닫기</button></div><form id="place-search-form" class="course-place-search__form"><label>장소를 찾을 구<select name="place-district" disabled><option value="">구 선택</option></select></label><label>장소 카테고리<select name="place-category" disabled><option value="">카테고리 선택</option></select></label><button type="submit">장소 찾기</button></form><div data-place-results aria-live="polite"></div></section>`;
+    searchRoot.innerHTML = `<section class="course-place-search" aria-label="장소 추가"><div class="course-place-search__header"><h3>추가할 장소 찾기</h3><button type="button" class="button button--secondary" data-close-search>닫기</button></div><form id="place-search-form" class="course-place-search__form"><label>장소를 찾을 구<select name="place-district" disabled><option value="">구 선택</option></select></label><label>장소 카테고리<select name="place-category" disabled><option value="">카테고리 선택</option></select></label><button type="submit">장소 찾기</button></form><div data-place-results aria-live="polite"></div><div data-place-pagination></div></section>`;
     const searchForm = searchRoot.querySelector('form'); const district = searchForm.elements['place-district']; const category = searchForm.elements['place-category'];
     metadata.districts.forEach(value => district.append(option(value))); metadata.categories.forEach(value => category.append(option(value)));
     district.disabled = false; category.disabled = false; searchRoot.querySelector('[data-close-search]').addEventListener('click', () => searchRoot.replaceChildren());
-    searchForm.addEventListener('submit', async event => {
-      event.preventDefault(); const results = searchRoot.querySelector('[data-place-results]');
+    const loadPage = async page => {
+      const results = searchRoot.querySelector('[data-place-results]'); const pagination = searchRoot.querySelector('[data-place-pagination]');
       if (!district.value || !category.value) { results.textContent = '구와 카테고리를 선택해 주세요.'; return; }
       renderAsyncState(results, { kind: 'loading', message: '장소를 찾고 있어요.' });
       try {
-        const data = await getRankings({ district: district.value, category: category.value, page: 1, signal });
-        renderPlaceSearchResults(results, data.items, new Set(toLocationIds(draft)), location => { draft = appendStop(draft, location); renderDraft(`${location.title}을 코스에 추가했습니다.`); });
-      } catch (error) { if (error.name !== 'AbortError') renderAsyncState(results, { kind: 'error', message: messageFor(error), onRetry: () => searchForm.requestSubmit() }); }
+        const data = await getRankings({ district: district.value, category: category.value, page, signal });
+        renderPlaceSearchResults(results, data.items, new Set(toLocationIds(draft)), location => { draft = appendStop(draft, location); renderDraft(`${location.title}을 코스에 추가했습니다.`); stopsRoot.querySelector(`[data-course-stop="${location.content_id}"]`)?.focus(); });
+        renderPagination(pagination, { page: data.pagination.page, totalPages: data.pagination.total_pages, onPageChange: loadPage });
+      } catch (error) { if (error.name !== 'AbortError') renderAsyncState(results, { kind: 'error', message: courseErrorMessage(error), onRetry: () => loadPage(page) }); }
+    };
+    searchForm.addEventListener('submit', event => {
+      event.preventDefault(); loadPage(1);
     });
     searchRoot.querySelector('select').focus();
   }
 
-  form.addEventListener('change', updateSubmit);
+  form.addEventListener('change', () => updateSubmit(true));
   form.addEventListener('submit', async event => {
     event.preventDefault(); const values = criteria(); const errors = validateCriteria(values);
     if (Object.keys(errors).length) { criteriaError.textContent = Object.values(errors)[0]; return; }
     submit.disabled = true; criteriaError.textContent = ''; renderAsyncState(stopsRoot, { kind: 'loading', message: '방문 순서를 만들고 있어요.' });
     try { const result = await suggestCourse(values, { signal }); draft = result.stops; renderDraft('코스 초안을 만들었습니다. 순서를 자유롭게 다듬어 보세요.'); outlet.querySelector('#course-draft-title').focus?.(); }
-    catch (error) { if (error.name !== 'AbortError') renderAsyncState(stopsRoot, { kind: 'error', message: messageFor(error), onRetry: () => form.requestSubmit() }); }
+    catch (error) { if (error.name !== 'AbortError') renderAsyncState(stopsRoot, { kind: 'error', message: courseErrorMessage(error), onRetry: () => form.requestSubmit() }); }
     finally { updateSubmit(); }
   });
 
   async function loadMetadata() {
     try {
       const [districts, categories] = await Promise.all([getDistricts({ signal }), getCategories({ signal })]); metadata = { districts, categories };
+      districtSelect.querySelectorAll('option:not(:first-child)').forEach(item => item.remove()); categoriesRoot.replaceChildren();
       districts.forEach(value => districtSelect.append(option(value)));
       categories.forEach(value => { const label = document.createElement('label'); label.className = 'course-category'; const input = document.createElement('input'); input.type = 'checkbox'; input.name = 'categories'; input.value = value; label.append(input, document.createTextNode(value)); categoriesRoot.append(label); });
-      districtSelect.disabled = false; categoryFieldset.disabled = false; updateSubmit();
-    } catch (error) { if (error.name !== 'AbortError') { criteriaError.textContent = '선택 항목을 불러오지 못했습니다.'; const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'button button--secondary'; retry.textContent = '다시 시도'; retry.addEventListener('click', loadMetadata); form.append(retry); } }
+      districtSelect.disabled = false; categoryFieldset.disabled = false; criteriaError.textContent = ''; metadataRetry?.remove(); metadataRetry = undefined; updateSubmit();
+    } catch (error) { if (error.name !== 'AbortError') { criteriaError.textContent = '선택 항목을 불러오지 못했습니다.'; if (!metadataRetry) { metadataRetry = document.createElement('button'); metadataRetry.type = 'button'; metadataRetry.className = 'button button--secondary'; metadataRetry.textContent = '다시 시도'; metadataRetry.addEventListener('click', loadMetadata); form.append(metadataRetry); } } }
   }
   renderDraft(); loadMetadata(); return () => {};
 }

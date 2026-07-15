@@ -8,6 +8,7 @@ import {
 import {
   validateCourse,
   validateCriteria,
+  courseErrorMessage,
 } from '../../../src/features/courses/course-validation.js';
 import {
   createCourse,
@@ -30,11 +31,22 @@ beforeEach(() => {
   })));
 });
 
+it('코스 오류 코드별 복구 안내를 제공한다', () => {
+  expect(courseErrorMessage({ code: 'VALIDATION_ERROR' })).toContain('입력');
+  expect(courseErrorMessage({ code: 'COURSE_NOT_ENOUGH_LOCATIONS' })).toContain('장소가 부족');
+  expect(courseErrorMessage({ code: 'PASSWORD_MISMATCH' })).toContain('비밀번호');
+  expect(courseErrorMessage({ code: 'COURSE_NOT_FOUND' })).toContain('코스를 찾을 수 없습니다');
+  expect(courseErrorMessage({ code: 'LOCATION_NOT_FOUND' })).toContain('장소');
+});
+
 it('초안 장소를 불변 방식으로 이동·추가·삭제·직렬화한다', () => {
   expect(moveStop(stops, 0, 1).map(item => item.location.content_id)).toEqual(['2', '1', '3']);
   expect(appendStop(stops, { content_id: '4', title: '장소 4' })).toHaveLength(4);
   expect(() => appendStop(stops, { content_id: '1' })).toThrow('이미 포함된 장소');
-  expect(removeStop(stops, 1).map(item => item.location.content_id)).toEqual(['1', '3']);
+  const fiveStops = [...stops, { position: 4, location: { content_id: '4' } }, { position: 5, location: { content_id: '5' } }];
+  expect(() => appendStop(fiveStops, { content_id: '6' })).toThrow('최대 5곳');
+  expect(() => removeStop(stops, 1)).toThrow('최소 3곳');
+  expect(removeStop([...stops, { position: 4, location: { content_id: '4' } }], 1).map(item => item.location.content_id)).toEqual(['1', '3', '4']);
   expect(toLocationIds(stops)).toEqual(['1', '2', '3']);
   expect(stops.map(item => item.location.content_id)).toEqual(['1', '2', '3']);
 });

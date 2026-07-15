@@ -19,9 +19,15 @@ beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(async (input, options) => {
     const url = new URL(input);
     if (url.pathname === '/api/meta/districts') return json({ items: ['마포구'] });
-    if (url.pathname === '/api/meta/categories') return json({ items: ['관광지', '문화시설', '쇼핑'] });
+    if (url.pathname === '/api/meta/categories') return json({ items: ['관광지', '문화시설', '쇼핑', '숙박'] });
     if (url.pathname === '/api/course-suggestions') return json(suggestion);
-    if (url.pathname === '/api/rankings') return json({ items: [{ rank: 4, content_id: '4', title: '서울함공원', category: '관광지', address: '서울 마포구' }], pagination: { page: 1, total_pages: 1 } });
+    if (url.pathname === '/api/rankings') {
+      const page = Number(url.searchParams.get('page'));
+      const location = page === 2
+        ? { rank: 5, content_id: '5', title: '월드컵공원', category: '관광지', address: '서울 마포구' }
+        : { rank: 4, content_id: '4', title: '서울함공원', category: '관광지', address: '서울 마포구' };
+      return json({ items: [location], pagination: { page, total_pages: 2 } });
+    }
     if (url.pathname === '/api/courses' && options.method === 'POST') return json({ ...suggestion, public_id: '0123456789abcdef0123456789abcdef', title: '마포 하루' }, 201);
     return json({ code: 'NOT_FOUND', message: '없음' }, 404);
   }));
@@ -31,6 +37,7 @@ afterEach(() => vi.restoreAllMocks());
 
 it('추천 초안을 편집하고 익명 코스로 저장한다', async () => {
   const root = document.createElement('div');
+  document.body.append(root);
   const app = startApp({ root });
   await vi.waitFor(() => expect(root.querySelector('[name="district"]')?.disabled).toBe(false));
   root.querySelector('[name="district"]').value = '마포구';
@@ -40,6 +47,7 @@ it('추천 초안을 편집하고 익명 코스로 저장한다', async () => {
   root.querySelector('#course-criteria').requestSubmit();
 
   await vi.waitFor(() => expect(root.textContent).toContain('문화비축기지'));
+  expect(document.activeElement.id).toBe('course-draft-title');
   expect(root.textContent).not.toContain('1200');
   expect(root.textContent).not.toContain('거리');
   root.querySelector('[aria-label="하늘공원 위로"]').click();
@@ -49,13 +57,27 @@ it('추천 초안을 편집하고 익명 코스로 저장한다', async () => {
   root.querySelector('[name="place-category"]').value = '관광지';
   root.querySelector('#place-search-form').requestSubmit();
   await vi.waitFor(() => expect(root.textContent).toContain('서울함공원'));
-  root.querySelector('[data-add-content-id="4"]').click();
+  root.querySelector('[data-page="next"]').click();
+  await vi.waitFor(() => expect(root.textContent).toContain('월드컵공원'));
+  root.querySelector('[data-add-content-id="5"]').click();
+  expect(document.activeElement.dataset.courseStop).toBe('5');
   root.querySelector('[name="title"]').value = '마포 하루';
   root.querySelector('[name="password"]').value = '1234';
   root.querySelector('#course-save-form').requestSubmit();
 
   await vi.waitFor(() => expect(location.pathname).toBe('/courses/0123456789abcdef0123456789abcdef'));
   const createCall = fetch.mock.calls.find(([input, options]) => new URL(input).pathname === '/api/courses' && options.method === 'POST');
-  expect(JSON.parse(createCall[1].body)).toEqual({ title: '마포 하루', password: '1234', location_content_ids: ['2', '1', '3', '4'] });
+  expect(JSON.parse(createCall[1].body)).toEqual({ title: '마포 하루', password: '1234', location_content_ids: ['2', '1', '3', '5'] });
+  app.stop();
+});
+
+it('선택 즉시 잘못된 카테고리 개수를 안내한다', async () => {
+  const root = document.createElement('div'); const app = startApp({ root });
+  await vi.waitFor(() => expect(root.querySelector('[name="district"]')?.disabled).toBe(false));
+  root.querySelector('[name="district"]').value = '마포구';
+  root.querySelectorAll('[name="categories"]').forEach(input => input.click());
+  root.querySelector('[name="categories"]').dispatchEvent(new Event('change', { bubbles: true }));
+  expect(root.querySelector('[data-criteria-error]').textContent).toContain('장소 수보다 많을 수 없습니다');
+  expect(root.querySelector('#course-criteria [type="submit"]').disabled).toBe(true);
   app.stop();
 });

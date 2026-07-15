@@ -13,7 +13,7 @@ export function renderCourseStops(container, stops, { onMove = () => {}, onRemov
   const list = document.createElement('ol'); list.className = 'course-stops';
   stops.forEach((stop, index) => {
     const { location } = stop;
-    const item = document.createElement('li'); item.className = 'course-stop'; item.dataset.courseStop = location.content_id;
+    const item = document.createElement('li'); item.className = 'course-stop'; item.dataset.courseStop = location.content_id; item.tabIndex = -1;
     const number = document.createElement('span'); number.className = 'course-stop__number'; number.textContent = String(index + 1).padStart(2, '0');
     const image = document.createElement('img'); image.src = location.thumbnail_url || location.image_url || fallbackImage; image.alt = `${location.title} 이미지`;
     image.addEventListener('error', () => { if (!image.src.endsWith(fallbackImage)) image.src = fallbackImage; }, { once: true });
