@@ -248,6 +248,82 @@
   letter-spacing: -.035em;
 }
 
+.post-detail-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.post-detail-title-row h1 {
+  min-width: 0;
+}
+
+.post-desktop-actions {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.post-desktop-actions summary {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  color: #475569;
+  cursor: pointer;
+  font-size: 1.65rem;
+  font-weight: 900;
+  line-height: 1;
+  list-style: none;
+}
+
+.post-desktop-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.post-desktop-actions summary:hover,
+.post-desktop-actions[open] summary {
+  background: #e8edf5;
+}
+
+.post-desktop-actions__menu {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + .35rem);
+  right: 0;
+  display: grid;
+  min-width: 7.5rem;
+  padding: .4rem;
+  border: 1px solid var(--line);
+  border-radius: .75rem;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, .14);
+}
+
+.post-desktop-actions__menu a,
+.post-desktop-actions__menu button {
+  justify-content: flex-start;
+  width: 100%;
+  padding: .65rem .75rem;
+  border: 0;
+  border-radius: .45rem;
+  color: var(--text);
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  text-decoration: none;
+}
+
+.post-desktop-actions__menu a:hover,
+.post-desktop-actions__menu button:hover {
+  background: #f1f5f9;
+}
+
+.post-desktop-actions__menu button {
+  color: var(--danger);
+}
+
 .post-detail .post-content {
   min-height: 8rem;
   margin: 1.25rem 0 0;
@@ -255,8 +331,7 @@
 }
 
 .post-detail .post-actions {
-  justify-content: flex-end;
-  padding-top: 1.25rem;
+  display: none;
 }
 
 .post-detail-comments {
@@ -270,8 +345,27 @@
 }
 
 .post-detail-comments .comment-form {
+  grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr) auto;
+  align-items: end;
+  padding: 1rem;
   border: 1px solid var(--line);
   background: #fff;
+}
+
+.post-detail-comments .comment-form > label:first-child {
+  grid-column: 1 / -1;
+}
+
+.post-detail-comments .comment-form > small {
+  align-self: center;
+}
+
+.post-detail-comments .comment-form > button {
+  justify-self: end;
+  width: auto;
+  min-height: 2.75rem;
+  padding: .7rem 1.15rem;
+  white-space: nowrap;
 }
 
 .post-detail-comments .comment {
@@ -345,6 +439,79 @@
   margin-bottom: .7rem;
   color: var(--muted);
   font-size: .8rem;
+}
+
+.comment-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.comment-head > p {
+  margin: 0 0 .65rem;
+}
+
+.comment-actions {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.comment-actions summary {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+  list-style: none;
+}
+
+.comment-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.comment-actions summary:hover,
+.comment-actions[open] summary {
+  background: #e8edf5;
+}
+
+.comment-actions__menu {
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + .25rem);
+  right: 0;
+  display: grid;
+  min-width: 6.5rem;
+  padding: .35rem;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .14);
+}
+
+.comment .comment-actions__menu button {
+  justify-content: flex-start;
+  width: 100%;
+  margin: 0;
+  padding: .6rem .7rem;
+  border: 0;
+  color: var(--text);
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+
+.comment .comment-actions__menu button:hover {
+  background: #f1f5f9;
+}
+
+.comment .comment-actions__menu button:last-child {
+  color: var(--danger);
 }
 
 .district-dialog {
@@ -502,7 +669,28 @@
   }
 
   .post-detail .post-actions {
+    display: flex;
     justify-content: flex-start;
+  }
+
+  .post-desktop-actions {
+    display: none;
+  }
+
+  .post-detail-comments .comment-form {
+    grid-template-columns: 1fr;
+    padding: 1.2rem;
+  }
+
+  .post-detail-comments .comment-form > label:first-child,
+  .post-detail-comments .comment-form > small,
+  .post-detail-comments .comment-form > button {
+    grid-column: 1;
+  }
+
+  .post-detail-comments .comment-form > button {
+    justify-self: stretch;
+    width: 100%;
   }
 }
 

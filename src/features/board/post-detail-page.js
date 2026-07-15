@@ -84,19 +84,30 @@ export function mountPostDetailPage({ outlet, params, signal, navigate }) {
     article.innerHTML = `
       <span class="post-tag"></span>
       <div class="post-detail-context"></div>
-      <h1></h1>
+      <div class="post-detail-title-row">
+        <h1></h1>
+        <details class="post-desktop-actions">
+          <summary aria-label="게시글 메뉴">⋮</summary>
+          <div class="post-desktop-actions__menu">
+            <a href="/posts/${post.id}/edit">수정</a>
+            <button type="button" data-delete-post>삭제</button>
+          </div>
+        </details>
+      </div>
       <div class="post-meta"></div>
       <p class="post-content"></p>
       <div class="post-actions">
         <a class="button button--secondary" href="/posts/${post.id}/edit">수정</a>
-        <button type="button">삭제</button>
+        <button type="button" data-delete-post>삭제</button>
       </div>`;
     article.querySelector('.post-tag').textContent = post.prefix;
     article.querySelector('.post-detail-context').textContent = post.district;
     article.querySelector('h1').textContent = post.title;
     article.querySelector('.post-content').textContent = post.content;
     article.querySelector('.post-meta').textContent = `작성 ${new Date(post.created_at).toLocaleString('ko-KR')}${post.updated_at !== post.created_at ? ` · 수정 ${new Date(post.updated_at).toLocaleString('ko-KR')}` : ''}`;
-    article.querySelector('button').addEventListener('click', (event) => removePost(event.currentTarget));
+    article.querySelectorAll('[data-delete-post]').forEach((button) => {
+      button.addEventListener('click', (event) => removePost(event.currentTarget));
+    });
     root.replaceChildren(article);
     mountComments({ root: outlet.querySelector('#comments-root'), postId: params.id, signal });
   }).catch((error) => {
