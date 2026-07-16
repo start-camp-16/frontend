@@ -1,4 +1,5 @@
 import { beforeEach, expect, it, vi } from 'vitest';
+import fs from 'node:fs';
 
 const api = vi.hoisted(() => ({
   getCourse: vi.fn(),
@@ -27,6 +28,11 @@ const course = {
     { position: 3, location: { content_id: '3', title: '망원시장', category: '쇼핑', address: '서울 마포구', latitude: 37.556, longitude: 126.906 } },
   ],
 };
+
+it('contains Leaflet stacking layers inside the course map', () => {
+  const css = fs.readFileSync('src/features/courses/courses.css', 'utf8').replace(/\s+/g, '');
+  expect(css).toContain('.course-map{isolation:isolate;');
+});
 
 function mountWithMap(markerCount = 2) {
   const map = {

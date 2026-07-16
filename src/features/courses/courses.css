@@ -75,7 +75,7 @@
 .course-detail__map-wrap, .course-detail__list { min-width: 0; }
 .course-detail__list h2 { margin: .25rem 0; }
 .course-detail__list .course-stops { margin-bottom: 0; }
-.course-map { min-height: 32rem; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-soft); }
+.course-map { isolation: isolate; min-height: 32rem; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-soft); }
 .course-map[hidden] { display: none; }
 .course-map-status { display: flex; align-items: center; gap: .6rem; min-height: 1.8rem; padding-top: .4rem; color: var(--muted); font-size: .82rem; }
 .course-map-status button { padding: .42rem .62rem; font-size: .76rem; }
