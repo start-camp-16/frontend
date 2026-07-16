@@ -6,8 +6,10 @@ export function mountComments({ root, postId, signal }) {
   root.innerHTML = `
     <h2>댓글</h2>
     <form class="comment-form">
-      <label>댓글<textarea name="content" maxlength="1000" rows="3"></textarea></label>
-      <label>비밀번호<input name="password" type="password" maxlength="20"></label>
+      <label class="visually-hidden" for="new-comment-content">댓글</label>
+      <textarea id="new-comment-content" name="content" maxlength="1000" rows="3" placeholder="댓글을 입력해 주세요"></textarea>
+      <label class="visually-hidden" for="new-comment-password">비밀번호</label>
+      <input id="new-comment-password" name="password" type="password" maxlength="20" placeholder="비밀번호를 입력해 주세요">
       <small role="alert"></small>
       <button>댓글 남기기</button>
     </form>

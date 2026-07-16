@@ -41,6 +41,7 @@
 .course-place-result button { padding: .5rem .7rem; }
 .course-detail__header { display: flex; justify-content: space-between; gap: 2rem; align-items: end; margin-bottom: 2rem; }
 .course-detail__header .page-title { font-size: clamp(2.2rem, 6vw, 4.5rem); }
+.course-detail__header .page-title:focus { outline: none; }
 .course-detail__actions { gap: .55rem; }
 .course-copy-status { min-height: 1.4rem; color: var(--primary); font-weight: 800; }
 .course-detail__stops, .course-edit__form { padding: clamp(1rem, 3vw, 2rem); }

@@ -400,7 +400,7 @@
   background: #fff;
 }
 
-.post-detail-comments .comment-form > label:first-child {
+.post-detail-comments .comment-form > textarea {
   grid-column: 1 / -1;
 }
 
@@ -730,7 +730,8 @@
     padding: 1.2rem;
   }
 
-  .post-detail-comments .comment-form > label:first-child,
+  .post-detail-comments .comment-form > textarea,
+  .post-detail-comments .comment-form > input,
   .post-detail-comments .comment-form > small,
   .post-detail-comments .comment-form > button {
     grid-column: 1;

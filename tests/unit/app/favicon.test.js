@@ -3,16 +3,17 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 describe('favicon', () => {
-  it('links the approved SVG favicon from the document head', () => {
+  it('links the approved PNG favicon from the document head', () => {
     const html = readFileSync(resolve('index.html'), 'utf8');
 
-    expect(html).toContain('<link rel="icon" type="image/svg+xml" href="/favicon.svg" />');
+    expect(html).toContain('<link rel="icon" type="image/png" href="/wink-gu-favicon.png" />');
+    expect(html).toContain('<link rel="apple-touch-icon" href="/wink-gu-favicon.png" />');
   });
 
-  it('keeps the approved rounded-square wink character geometry', () => {
-    const svg = readFileSync(resolve('public/favicon.svg'), 'utf8');
+  it('keeps the supplied wink character PNG asset', () => {
+    const png = readFileSync(resolve('public/wink-gu-favicon.png'));
 
-    expect(svg).toContain('<rect x="9" y="9" width="110" height="110" rx="30" fill="#315cfd" />');
-    expect(svg).not.toMatch(/<circle[^>]+cx="99"[^>]+cy="29"/);
+    expect([...png.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+    expect(png.length).toBeGreaterThan(1000);
   });
 });

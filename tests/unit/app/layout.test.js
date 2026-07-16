@@ -4,6 +4,10 @@ import { renderLayout } from '../../../src/app/layout.js';
 it('공통 앱 셸을 렌더링한다', () => {
   const { outlet, chatRoot } = renderLayout(document.body);
   expect(document.body.textContent).toContain('뭐할구');
+  expect(document.querySelector('.brand__icon').getAttribute('src')).toBe('/wink-gu-favicon.png');
+  expect(document.querySelector('.brand__icon').getAttribute('alt')).toBe('');
+  expect(document.querySelector('.brand__gu').textContent).toBe('구');
+  expect(document.querySelector('.brand__question').textContent).toBe('?');
   expect(document.querySelector('a[href="/"]')).not.toBeNull();
   expect(document.querySelector('a[href="/courses"]').textContent).toBe('코스');
   expect(document.querySelector('a[href="/posts"]')).not.toBeNull();

@@ -17,6 +17,11 @@ it('댓글의 수정과 삭제를 세로 점 메뉴에 배치한다', async () =
   const root = document.createElement('section');
   mountComments({ root, postId: '7', signal: new AbortController().signal });
 
+  expect(root.querySelector('[name="content"]').placeholder).toBe('댓글을 입력해 주세요');
+  expect(root.querySelector('[name="password"]').placeholder).toBe('비밀번호를 입력해 주세요');
+  expect(root.querySelector('label[for="new-comment-content"]').classList).toContain('visually-hidden');
+  expect(root.querySelector('label[for="new-comment-password"]').classList).toContain('visually-hidden');
+
   await vi.waitFor(() => expect(root.querySelector('.comment-actions')).not.toBeNull());
 
   expect(root.querySelector('.comment-actions summary').getAttribute('aria-label')).toBe('댓글 메뉴');

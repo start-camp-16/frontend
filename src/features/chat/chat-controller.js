@@ -10,8 +10,9 @@ const ERROR_MESSAGES = {
 
 export function mountChat({ container }) {
   const state = createChatState();
-  container.innerHTML = `<button class="chat-trigger" type="button" aria-expanded="false" aria-controls="chat-panel"><span aria-hidden="true">✦</span><span class="visually-hidden">챗봇 열기</span></button><section id="chat-panel" class="chat-panel" role="dialog" aria-modal="true" aria-label="지역 정보 챗봇" hidden><header><div><strong>뭐할구 가이드</strong><small>서울 장소와 동네 이야기를 물어보세요</small></div><button type="button" data-close aria-label="챗봇 닫기">×</button></header><div class="chat-log" aria-live="polite"></div><form><label for="chat-message" class="visually-hidden">메시지</label><textarea id="chat-message" name="message" rows="2" maxlength="1000" placeholder="예: 마포구에서 전시 보고 산책할 곳 알려줘"></textarea><button>전송</button></form></section>`;
+  container.innerHTML = `<button class="chat-trigger" type="button" aria-expanded="false" aria-controls="chat-panel"><span aria-hidden="true">✦</span><span class="visually-hidden">챗봇 열기</span></button><button class="chat-backdrop" type="button" tabindex="-1" aria-label="챗봇 닫기" hidden></button><section id="chat-panel" class="chat-panel" role="dialog" aria-modal="true" aria-label="지역 정보 챗봇" hidden><header><div><strong>뭐할구 가이드</strong><small>서울 장소와 동네 이야기를 물어보세요</small></div><button type="button" data-close aria-label="챗봇 닫기">×</button></header><div class="chat-log" aria-live="polite"></div><form><label for="chat-message" class="visually-hidden">메시지</label><textarea id="chat-message" name="message" rows="2" maxlength="1000" placeholder="예: 마포구에서 전시 보고 산책할 곳 알려줘"></textarea><button>전송</button></form></section>`;
   const trigger = container.querySelector('.chat-trigger');
+  const backdrop = container.querySelector('.chat-backdrop');
   const panel = container.querySelector('.chat-panel');
   const log = container.querySelector('.chat-log');
   const form = container.querySelector('form');
@@ -20,6 +21,7 @@ export function mountChat({ container }) {
 
   function draw() {
     trigger.setAttribute('aria-expanded', String(state.isOpen));
+    backdrop.hidden = !state.isOpen;
     panel.hidden = !state.isOpen;
     log.replaceChildren();
     if (!state.messages.length) {
@@ -57,7 +59,8 @@ export function mountChat({ container }) {
     } finally { state.isSending = false; draw(); }
   }
 
-  trigger.addEventListener('click', open);
+  trigger.addEventListener('click', () => { if (state.isOpen) close(); else open(); });
+  backdrop.addEventListener('click', close);
   container.querySelector('[data-close]').addEventListener('click', close);
   panel.addEventListener('keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); close(); return; }

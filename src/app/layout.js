@@ -2,7 +2,7 @@ export function renderLayout(root) {
   root.innerHTML = `
     <a class="skip-link" href="#route-outlet">본문으로 건너뛰기</a>
     <header class="site-header"><div class="header-inner">
-      <a class="brand" href="/" aria-label="뭐할구 홈">뭐할구<span>?</span></a>
+      <a class="brand" href="/" aria-label="뭐할구 홈"><img class="brand__icon" src="/wink-gu-favicon.png" alt="" width="32" height="32"><span class="brand__wordmark">뭐할<span class="brand__gu">구</span><span class="brand__question">?</span></span></a>
       <nav aria-label="주요 메뉴"><a href="/">홈</a><a href="/courses">코스</a><a href="/posts">게시판</a></nav>
     </div></header>
     <main id="route-outlet" tabindex="-1"></main>

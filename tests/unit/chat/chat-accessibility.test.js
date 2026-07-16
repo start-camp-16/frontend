@@ -10,4 +10,10 @@ it('Escape로 닫고 플로팅 버튼에 포커스를 돌린다', () => {
   container.querySelector('#chat-panel').dispatchEvent(new KeyboardEvent('keydown', { key:'Escape', bubbles:true }));
   expect(container.querySelector('#chat-panel').hidden).toBe(true);
   expect(document.activeElement).toBe(trigger);
+
+  trigger.click();
+  expect(container.querySelector('.chat-backdrop').hidden).toBe(false);
+  container.querySelector('.chat-backdrop').click();
+  expect(container.querySelector('#chat-panel').hidden).toBe(true);
+  expect(document.activeElement).toBe(trigger);
 });
