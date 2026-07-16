@@ -1,10 +1,17 @@
 import { expect, it, vi } from 'vitest';
+import fs from 'node:fs';
 import { getCategoryFallback, renderRankingItems } from '../../../src/features/ranking/ranking-view.js';
 
 const items = [
   { content_id:'1', rank:1, title:'좌표 장소', address:'서울', phone:null, image_url:null, thumbnail_url:null, latitude:37.5, longitude:127 },
   { content_id:'2', rank:2, title:'좌표 없는 장소', address:null, phone:null, image_url:null, thumbnail_url:null, latitude:null, longitude:null },
 ];
+
+it('scopes the mobile Leaflet bottom offset to the ranking map', () => {
+  const css = fs.readFileSync('src/features/ranking/ranking.css', 'utf8').replace(/\s+/g, '');
+  expect(css).toContain('.ranking-explorer.leaflet-bottom{bottom:7.5rem;}');
+  expect(css).not.toContain('}.leaflet-bottom{bottom:7.5rem;}');
+});
 
 it('랭킹 항목을 키보드로 선택 가능한 버튼으로 렌더링한다', () => {
   const onSelect = vi.fn();
