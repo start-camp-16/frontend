@@ -53,9 +53,11 @@ it('renders a collapsible five-course carousel between the hero and builder', as
 
   await vi.waitFor(() => expect(root.textContent).toContain('강남구 추천 코스'));
   const panel = root.querySelector('[data-course-rankings]');
+  expect(panel.classList.contains('panel')).toBe(true);
   expect(panel.previousElementSibling.classList.contains('course-hero')).toBe(true);
   expect(panel.nextElementSibling.classList.contains('course-workspace')).toBe(true);
   expect(panel.textContent).toContain('봉은사');
+  expect(panel.textContent).toContain('이번 주 가장 인기 있는 코스 TOP 5');
   expect(panel.textContent).toContain('서울특별시 강남구 봉은사로 531');
   expect(panel.querySelector('.course-ranking-stop__copy').textContent).toBe('봉은사서울특별시 강남구 봉은사로 531');
   expect(panel.querySelector('.course-ranking-content').getAttribute('aria-live')).toBe('polite');

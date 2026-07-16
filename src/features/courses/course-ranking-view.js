@@ -24,7 +24,7 @@ function renderStops(root, course) {
 
 export function renderCourseRankingCarousel(root, courses) {
   const body = root.querySelector('[data-course-ranking-body]');
-  body.innerHTML = `<div class="course-ranking-content" aria-live="polite" aria-atomic="true"><h3 data-course-ranking-district></h3><ol class="course-ranking-stops" data-course-ranking-stops></ol></div><div class="course-ranking-carousel" aria-label="추천 코스 슬라이드"><button type="button" class="course-ranking-carousel__arrow" data-course-ranking-prev aria-label="이전 추천 코스"><span aria-hidden="true"></span></button><div class="course-ranking-dots" data-course-ranking-dots></div><button type="button" class="course-ranking-carousel__arrow course-ranking-carousel__arrow--next" data-course-ranking-next aria-label="다음 추천 코스"><span aria-hidden="true"></span></button></div>`;
+  body.innerHTML = `<div class="course-ranking-content" aria-live="polite" aria-atomic="true"><p class="course-ranking-kicker">이번 주 가장 인기 있는 코스 TOP 5</p><h3 data-course-ranking-district></h3><ol class="course-ranking-stops" data-course-ranking-stops></ol></div><div class="course-ranking-carousel" aria-label="추천 코스 슬라이드"><button type="button" class="course-ranking-carousel__arrow" data-course-ranking-prev aria-label="이전 추천 코스"><span aria-hidden="true"></span></button><div class="course-ranking-dots" data-course-ranking-dots></div><button type="button" class="course-ranking-carousel__arrow course-ranking-carousel__arrow--next" data-course-ranking-next aria-label="다음 추천 코스"><span aria-hidden="true"></span></button></div>`;
   const items = [...courses].sort((a, b) => a.rank - b.rank);
   const dots = root.querySelector('[data-course-ranking-dots]');
   let activeIndex = 0;
