@@ -53,6 +53,39 @@ it('keeps the recommendation route at a fixed five-stop height', () => {
   expect(css).toContain('.course-ranking-stops{height:23.1rem;grid-auto-rows:4.5rem;}');
 });
 
+it('styles course criteria selects like the homepage dropdown shell', () => {
+  const css = fs.readFileSync('src/features/courses/courses.css', 'utf8').replace(/\s+/g, '');
+  expect(css).toContain('.course-select-field{position:relative;display:grid;gap:.45rem;font-weight:800;}');
+  expect(css).toContain('.course-select-trigger{position:relative;width:100%;min-width:0;padding:.72rem2.8rem.72rem1rem;border:1pxsolid#d4dae6;border-radius:12px;');
+  expect(css).toContain('.course-select-menu{position:absolute;top:calc(100%+.45rem);left:0;right:0;z-index:30;');
+});
+
+it('uses homepage-style dropdown controls for course criteria selects', async () => {
+  const root = document.createElement('div');
+  document.body.append(root);
+  const app = startApp({ root });
+
+  await vi.waitFor(() => expect(root.querySelector('[name="district"]')?.disabled).toBe(false));
+  expect(root.querySelectorAll('.course-select-trigger')).toHaveLength(2);
+  expect(root.querySelector('[name="district"]').classList.contains('course-native-select')).toBe(true);
+  expect(root.querySelector('[name="stop_count"]').classList.contains('course-native-select')).toBe(true);
+
+  const [districtTrigger] = root.querySelectorAll('.course-select-trigger');
+  const districtMenu = root.querySelector('.course-select-menu');
+  districtTrigger.click();
+  expect(districtTrigger.getAttribute('aria-expanded')).toBe('true');
+  expect(districtMenu.hidden).toBe(false);
+  expect(districtMenu.querySelectorAll('.course-select-option')).toHaveLength(3);
+
+  const firstDistrictValue = root.querySelector('[name="district"] option:nth-child(2)').value;
+  districtMenu.querySelector(`[data-value="${firstDistrictValue}"]`).click();
+  expect(root.querySelector('[name="district"]').value).toBe(firstDistrictValue);
+  expect(districtTrigger.textContent).toBe(firstDistrictValue);
+  expect(districtMenu.hidden).toBe(true);
+
+  app.stop();
+});
+
 it('renders a collapsible five-course carousel between the hero and builder', async () => {
   const root = document.createElement('div');
   document.body.append(root);

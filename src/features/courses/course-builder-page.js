@@ -10,8 +10,85 @@ import './courses.css';
 
 function option(value) { const item = document.createElement('option'); item.value = value; item.textContent = value; return item; }
 
+function createCourseSelectControl(select) {
+  const field = select.closest('.course-select-field');
+  const trigger = field.querySelector('.course-select-trigger');
+  const value = trigger.querySelector('[data-select-value]');
+  const menu = field.querySelector('.course-select-menu');
+
+  function syncLabel() {
+    value.textContent = select.selectedOptions[0]?.textContent || select.options[0]?.textContent || '';
+  }
+
+  function close() {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function renderOptions() {
+    menu.replaceChildren();
+    [...select.options].forEach(option => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'course-select-option';
+      item.dataset.value = option.value;
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', String(option.value === select.value));
+      item.textContent = option.textContent;
+      item.addEventListener('click', () => {
+        select.value = option.value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        syncLabel();
+        renderOptions();
+        close();
+        trigger.focus();
+      });
+      menu.append(item);
+    });
+    syncLabel();
+    trigger.disabled = select.disabled;
+  }
+
+  trigger.addEventListener('click', event => {
+    event.stopPropagation();
+    if (trigger.disabled) return;
+    const willOpen = menu.hidden;
+    close();
+    menu.hidden = !willOpen;
+    trigger.setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) menu.querySelector('[aria-selected="true"]')?.focus();
+  });
+
+  trigger.addEventListener('keydown', event => {
+    if ((event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') && menu.hidden) {
+      event.preventDefault();
+      trigger.click();
+    }
+  });
+
+  menu.addEventListener('keydown', event => {
+    const options = [...menu.querySelectorAll('.course-select-option')];
+    const current = options.indexOf(document.activeElement);
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      close();
+      trigger.focus();
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      options[Math.min(current + 1, options.length - 1)]?.focus();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      options[Math.max(current - 1, 0)]?.focus();
+    }
+  });
+
+  select.addEventListener('change', renderOptions);
+  renderOptions();
+  return { select, trigger, menu, renderOptions, close };
+}
+
 export function mountCourseBuilderPage({ outlet, signal, navigate }) {
-  outlet.innerHTML = `<section class="course-hero"><p class="eyebrow">Build a day in Seoul</p><h1 class="page-title">가까운 곳부터,<br><span>가볍게 골라봐요.</span></h1><p class="lede">지역과 관심사를 고르면 하루 코스의 방문 순서를 만들어 드려요.</p></section><section class="course-workspace"><form id="course-criteria" class="course-criteria panel"><div><p class="course-step">01 · 조건 고르기</p><h2>어디에서 무엇을 할까요?</h2></div><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><fieldset disabled><legend>관심 카테고리 <small>1~3개</small></legend><div id="course-categories" class="course-category-grid"></div></fieldset><label>방문 장소 수<select name="stop_count"><option value="3">3곳</option><option value="4">4곳</option><option value="5">5곳</option></select></label><p class="course-error" data-criteria-error role="alert"></p><button type="submit" disabled>코스 초안 만들기</button></form><section class="course-draft panel" aria-labelledby="course-draft-title"><div class="course-draft__header"><div><p class="course-step">02 · 순서 다듬기</p><h2 id="course-draft-title" tabindex="-1">나의 방문 순서</h2></div></div><div id="course-draft-status" aria-live="polite"></div><div id="course-stops"></div><div id="course-place-search"></div><div id="course-save"></div></section></section>`;
+  outlet.innerHTML = `<section class="course-hero"><p class="eyebrow">Build a day in Seoul</p><h1 class="page-title">가까운 곳부터,<br><span>가볍게 골라봐요.</span></h1><p class="lede">지역과 관심사를 고르면 하루 코스의 방문 순서를 만들어 드려요.</p></section><section class="course-workspace"><form id="course-criteria" class="course-criteria panel"><div><p class="course-step">01 · 조건 고르기</p><h2>어디에서 무엇을 할까요?</h2></div><label class="course-select-field">어느 구에서?<select class="course-native-select" name="district" disabled><option value="">구 선택</option></select><button class="course-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" disabled><span data-select-value>구 선택</span></button><div class="course-select-menu" role="listbox" hidden></div></label><fieldset disabled><legend>관심 카테고리 <small>1~3개</small></legend><div id="course-categories" class="course-category-grid"></div></fieldset><label class="course-select-field">방문 장소 수<select class="course-native-select" name="stop_count"><option value="3">3곳</option><option value="4">4곳</option><option value="5">5곳</option></select><button class="course-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span data-select-value>3곳</span></button><div class="course-select-menu" role="listbox" hidden></div></label><p class="course-error" data-criteria-error role="alert"></p><button type="submit" disabled>코스 초안 만들기</button></form><section class="course-draft panel" aria-labelledby="course-draft-title"><div class="course-draft__header"><div><p class="course-step">02 · 순서 다듬기</p><h2 id="course-draft-title" tabindex="-1">나의 방문 순서</h2></div></div><div id="course-draft-status" aria-live="polite"></div><div id="course-stops"></div><div id="course-place-search"></div><div id="course-save"></div></section></section>`;
   outlet.querySelector('.course-workspace').insertAdjacentHTML('beforebegin', `<section class="course-ranking-panel panel" data-course-rankings data-collapsed="false" aria-labelledby="course-ranking-title"><header class="course-ranking-header"><h2 id="course-ranking-title">오늘의 추천 코스</h2><button type="button" class="course-ranking-toggle" data-course-ranking-toggle aria-expanded="true" aria-controls="course-ranking-body" aria-label="추천 코스 접기"><span aria-hidden="true"></span></button></header><div id="course-ranking-body" class="course-ranking-body" data-course-ranking-body><div class="async-state">추천 코스를 불러오고 있어요.</div></div></section>`);
   const rankingPanel = outlet.querySelector('[data-course-rankings]');
   const rankingToggle = rankingPanel.querySelector('[data-course-ranking-toggle]');
@@ -24,6 +101,8 @@ export function mountCourseBuilderPage({ outlet, signal, navigate }) {
   });
   const form = outlet.querySelector('#course-criteria');
   const districtSelect = form.elements.district; const categoryFieldset = form.querySelector('fieldset');
+  const selectControls = [...form.querySelectorAll('.course-native-select')].map(createCourseSelectControl);
+  const closeSelectMenus = () => selectControls.forEach(control => control.close());
   const categoriesRoot = form.querySelector('#course-categories'); const submit = form.querySelector('[type="submit"]');
   const criteriaError = form.querySelector('[data-criteria-error]'); const status = outlet.querySelector('#course-draft-status');
   const stopsRoot = outlet.querySelector('#course-stops'); const searchRoot = outlet.querySelector('#course-place-search'); const saveRoot = outlet.querySelector('#course-save');
@@ -88,6 +167,7 @@ export function mountCourseBuilderPage({ outlet, signal, navigate }) {
   }
 
   form.addEventListener('change', () => updateSubmit(true));
+  document.addEventListener('click', closeSelectMenus);
   form.addEventListener('submit', async event => {
     event.preventDefault(); const values = criteria(); const errors = validateCriteria(values);
     if (Object.keys(errors).length) { criteriaError.textContent = Object.values(errors)[0]; return; }
@@ -103,7 +183,7 @@ export function mountCourseBuilderPage({ outlet, signal, navigate }) {
       districtSelect.querySelectorAll('option:not(:first-child)').forEach(item => item.remove()); categoriesRoot.replaceChildren();
       districts.forEach(value => districtSelect.append(option(value)));
       categories.forEach(value => { const label = document.createElement('label'); label.className = 'course-category'; const input = document.createElement('input'); input.type = 'checkbox'; input.name = 'categories'; input.value = value; label.append(input, document.createTextNode(value)); categoriesRoot.append(label); });
-      districtSelect.disabled = false; categoryFieldset.disabled = false; criteriaError.textContent = ''; metadataRetry?.remove(); metadataRetry = undefined; updateSubmit();
+      districtSelect.disabled = false; categoryFieldset.disabled = false; selectControls.forEach(control => control.renderOptions()); criteriaError.textContent = ''; metadataRetry?.remove(); metadataRetry = undefined; updateSubmit();
     } catch (error) { if (error.name !== 'AbortError') { criteriaError.textContent = '선택 항목을 불러오지 못했습니다.'; if (!metadataRetry) { metadataRetry = document.createElement('button'); metadataRetry.type = 'button'; metadataRetry.className = 'button button--secondary'; metadataRetry.textContent = '다시 시도'; metadataRetry.addEventListener('click', loadMetadata); form.append(metadataRetry); } } }
   }
   async function loadRankedCourses() {
@@ -119,5 +199,7 @@ export function mountCourseBuilderPage({ outlet, signal, navigate }) {
       }
     }
   }
-  renderDraft(); loadMetadata(); loadRankedCourses(); return () => {};
+  renderDraft(); loadMetadata(); loadRankedCourses(); return () => {
+    document.removeEventListener('click', closeSelectMenus);
+  };
 }
