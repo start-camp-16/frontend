@@ -57,9 +57,15 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
         </form>
         <div class="board-list-toolbar">
           <div class="board-page-size">
-            <select id="post-page-size" name="page-size" aria-label="페이지당 표시 개수">
+            <select class="board-page-size__native" id="post-page-size" name="page-size" aria-label="페이지당 표시 개수">
               ${PAGE_SIZES.map((pageSize) => `<option value="${pageSize}"${pageSize === size ? ' selected' : ''}>${pageSize}개씩 보기</option>`).join('')}
             </select>
+            <button class="board-page-size__trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span data-page-size-value>${size}개씩 보기</span>
+            </button>
+            <div class="board-page-size__menu" role="listbox" hidden>
+              ${PAGE_SIZES.map((pageSize) => `<button class="board-page-size__option" type="button" role="option" data-page-size="${pageSize}" aria-selected="${pageSize === size ? 'true' : 'false'}">${pageSize}개씩 보기</button>`).join('')}
+            </div>
           </div>
         </div>
         <div id="board-state" aria-live="polite"></div>
@@ -98,7 +104,55 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
     go({ nextQ: event.currentTarget.elements.q.value });
   });
 
-  outlet.querySelector('[name="page-size"]').addEventListener('change', (event) => {
+  const pageSizeSelect = outlet.querySelector('[name="page-size"]');
+  const pageSizeTrigger = outlet.querySelector('.board-page-size__trigger');
+  const pageSizeMenu = outlet.querySelector('.board-page-size__menu');
+  const pageSizeValue = outlet.querySelector('[data-page-size-value]');
+
+  const closePageSizeMenu = () => {
+    pageSizeMenu.hidden = true;
+    pageSizeTrigger.setAttribute('aria-expanded', 'false');
+  };
+
+  pageSizeTrigger.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const willOpen = pageSizeMenu.hidden;
+    pageSizeMenu.hidden = !willOpen;
+    pageSizeTrigger.setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) pageSizeMenu.querySelector('[aria-selected="true"]')?.focus();
+  });
+
+  pageSizeMenu.addEventListener('click', (event) => {
+    const option = event.target.closest('[data-page-size]');
+    if (!option) return;
+    pageSizeSelect.value = option.dataset.pageSize;
+    pageSizeValue.textContent = option.textContent.trim();
+    pageSizeMenu.querySelectorAll('[data-page-size]').forEach((item) => {
+      item.setAttribute('aria-selected', String(item === option));
+    });
+    closePageSizeMenu();
+    pageSizeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  pageSizeMenu.addEventListener('keydown', (event) => {
+    const options = [...pageSizeMenu.querySelectorAll('[data-page-size]')];
+    const current = options.indexOf(document.activeElement);
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closePageSizeMenu();
+      pageSizeTrigger.focus();
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      options[Math.min(current + 1, options.length - 1)]?.focus();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      options[Math.max(current - 1, 0)]?.focus();
+    }
+  });
+
+  document.addEventListener('click', closePageSizeMenu);
+
+  pageSizeSelect.addEventListener('change', (event) => {
     go({ nextSize: Number(event.currentTarget.value) });
   });
 
@@ -149,5 +203,7 @@ export function mountBoardListPage({ outlet, query, signal, navigate }) {
   };
 
   load();
-  return () => {};
+  return () => {
+    document.removeEventListener('click', closePageSizeMenu);
+  };
 }

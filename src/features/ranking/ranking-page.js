@@ -15,7 +15,7 @@ export function mountRankingPage(
   let selectedId = null;
   document.body.classList.add('ranking-map-active');
 
-  outlet.innerHTML = `<section class="ranking-page"><div class="ranking-explorer"><div id="ranking-map" class="ranking-map" role="region" aria-label="현재 랭킹 장소 지도"></div><section class="ranking-top-panel panel"><div class="ranking-hero"><p class="eyebrow">Seoul city guide</p><h1 class="page-title">서울의 즐거움, 빠르게 찾아봐요.</h1><p class="lede">원하는 지역과 활동을 선택하면 지금 둘러볼 장소를 추천해드려요.</p></div><form class="ranking-filter"><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><label>무엇을 할까요?<select name="category" disabled><option value="">카테고리 선택</option></select></label><button disabled>장소 찾기</button></form></section><div id="map-status" class="map-status" aria-live="polite"></div><section class="ranking-results-panel" data-sheet-state="collapsed" data-sidebar-state="expanded" aria-label="장소 랭킹 목록"><header class="ranking-sidebar-header"><h2>랭킹</h2><button class="ranking-sidebar-toggle" type="button" aria-controls="ranking-sheet-content" aria-expanded="true" aria-label="장소 사이드바 접기"><span aria-hidden="true"></span></button></header><div class="ranking-sheet-header"><button class="ranking-sheet-toggle" type="button" aria-controls="ranking-sheet-content" aria-expanded="false" aria-label="장소 목록 펼치기"><span class="ranking-sheet-handle" aria-hidden="true"></span></button><div class="ranking-recommendation-box" hidden><p id="ranking-recommendation" class="ranking-recommendation" hidden></p><span id="ranking-result-count" class="ranking-result-count" aria-live="polite"></span></div></div><div id="ranking-sheet-content" class="ranking-sheet-content"><div id="ranking-status" aria-live="polite"></div><div id="ranking-results" class="place-grid"></div></div></section></div></section>`;
+  outlet.innerHTML = `<section class="ranking-page"><div class="ranking-explorer"><div id="ranking-map" class="ranking-map" role="region" aria-label="현재 랭킹 장소 지도"></div><section class="ranking-top-panel panel"><div class="ranking-hero"><p class="eyebrow">Seoul city guide</p><h1 class="page-title">서울의 즐거움, 빠르게 찾아봐요.</h1><p class="lede">원하는 지역과 활동을 선택하면 지금 둘러볼 장소를 추천해드려요.</p></div><form class="ranking-filter"><label class="ranking-select-field"><span>어느 구에서?</span><select class="ranking-native-select" name="district" disabled><option value="">구 선택</option></select><button class="ranking-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" disabled><span data-select-value>구 선택</span></button><div class="ranking-select-menu" role="listbox" hidden></div></label><label class="ranking-select-field"><span>무엇을 할까요?</span><select class="ranking-native-select" name="category" disabled><option value="">카테고리 선택</option></select><button class="ranking-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" disabled><span data-select-value>카테고리 선택</span></button><div class="ranking-select-menu" role="listbox" hidden></div></label><button class="ranking-submit" disabled>장소 찾기</button></form></section><div id="map-status" class="map-status" aria-live="polite"></div><section class="ranking-results-panel" data-sheet-state="collapsed" data-sidebar-state="expanded" aria-label="장소 랭킹 목록"><header class="ranking-sidebar-header"><h2>랭킹</h2><button class="ranking-sidebar-toggle" type="button" aria-controls="ranking-sheet-content" aria-expanded="true" aria-label="장소 사이드바 접기"><span aria-hidden="true"></span></button></header><div class="ranking-sheet-header"><button class="ranking-sheet-toggle" type="button" aria-controls="ranking-sheet-content" aria-expanded="false" aria-label="장소 목록 펼치기"><span class="ranking-sheet-handle" aria-hidden="true"></span></button><div class="ranking-recommendation-box" hidden><p id="ranking-recommendation" class="ranking-recommendation" hidden></p><span id="ranking-result-count" class="ranking-result-count" aria-live="polite"></span></div></div><div id="ranking-sheet-content" class="ranking-sheet-content"><div id="ranking-status" aria-live="polite"></div><div id="ranking-results" class="place-grid"></div></div></section></div></section>`;
 
   const form = outlet.querySelector('form');
   const recommendation = outlet.querySelector('#ranking-recommendation');
@@ -29,11 +29,95 @@ export function mountRankingPage(
   const results = outlet.querySelector('#ranking-results');
   const mapContainer = outlet.querySelector('#ranking-map');
   const [districtSelect, categorySelect] = form.querySelectorAll('select');
-  const submit = form.querySelector('button');
+  const submit = form.querySelector('.ranking-submit');
+  const selectControls = [districtSelect, categorySelect].map(createSelectControl);
   let rankingMap;
   let tileErrorVisible = false;
   let pointerStartY = null;
   let suppressNextSheetClick = false;
+
+  function closeSelectMenus(except = null) {
+    selectControls.forEach(control => {
+      if (control === except) return;
+      control.menu.hidden = true;
+      control.trigger.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function createSelectControl(select) {
+    const field = select.closest('.ranking-select-field');
+    const trigger = field.querySelector('.ranking-select-trigger');
+    const value = trigger.querySelector('[data-select-value]');
+    const menu = field.querySelector('.ranking-select-menu');
+
+    function syncLabel() {
+      value.textContent = select.selectedOptions[0]?.textContent || select.options[0]?.textContent || '';
+    }
+
+    function renderOptions() {
+      menu.replaceChildren();
+      [...select.options].forEach(option => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'ranking-select-option';
+        item.dataset.value = option.value;
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', String(option.value === select.value));
+        item.textContent = option.textContent;
+        item.addEventListener('click', () => {
+          select.value = option.value;
+          select.dispatchEvent(new Event('change', { bubbles:true }));
+          syncLabel();
+          renderOptions();
+          closeSelectMenus();
+          trigger.focus();
+        });
+        menu.append(item);
+      });
+      syncLabel();
+      trigger.disabled = select.disabled;
+    }
+
+    trigger.addEventListener('click', event => {
+      event.stopPropagation();
+      if (trigger.disabled) return;
+      const willOpen = menu.hidden;
+      closeSelectMenus();
+      menu.hidden = !willOpen;
+      trigger.setAttribute('aria-expanded', String(willOpen));
+      if (willOpen) menu.querySelector('[aria-selected="true"]')?.focus();
+    });
+
+    trigger.addEventListener('keydown', event => {
+      if ((event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') && menu.hidden) {
+        event.preventDefault();
+        trigger.click();
+      }
+    });
+
+    menu.addEventListener('keydown', event => {
+      const options = [...menu.querySelectorAll('.ranking-select-option')];
+      const current = options.indexOf(document.activeElement);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSelectMenus();
+        trigger.focus();
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        options[Math.min(current + 1, options.length - 1)]?.focus();
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        options[Math.max(current - 1, 0)]?.focus();
+      }
+    });
+
+    select.addEventListener('change', () => {
+      syncLabel();
+      renderOptions();
+    });
+
+    return { select, trigger, menu, renderOptions };
+  }
 
   function setSheetState(nextState) {
     const expanded = nextState === 'expanded';
@@ -126,6 +210,7 @@ export function mountRankingPage(
     items.forEach(item => select.add(new Option(item, item)));
     if (items.includes(value)) select.value = value;
     select.disabled = false;
+    selectControls.find(control => control.select === select)?.renderOptions();
   }
 
   function renderSelectionPrompt() {
@@ -181,6 +266,7 @@ export function mountRankingPage(
   }
 
   form.addEventListener('submit', onSubmit);
+  document.addEventListener('click', closeSelectMenus);
   sheetToggle.addEventListener('click', toggleSheet);
   sheetToggle.addEventListener('pointerdown', onSheetPointerDown);
   sheetToggle.addEventListener('pointerup', onSheetPointerUp);
@@ -189,6 +275,7 @@ export function mountRankingPage(
   loadMeta();
   return () => {
     form.removeEventListener('submit', onSubmit);
+    document.removeEventListener('click', closeSelectMenus);
     sheetToggle.removeEventListener('click', toggleSheet);
     sheetToggle.removeEventListener('pointerdown', onSheetPointerDown);
     sheetToggle.removeEventListener('pointerup', onSheetPointerUp);
