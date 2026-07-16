@@ -161,6 +161,34 @@ it('초기 선택값이 없으면 구와 카테고리 선택 안내를 표시한
   cleanup();
 });
 
+it('랭킹 필터 서브메뉴 리스트에서 옵션을 선택한다', async () => {
+  api.getDistricts.mockResolvedValueOnce(['마포구', '강남구']);
+  const map = { setItems:vi.fn(() => 0), select:vi.fn(), destroy:vi.fn(), invalidateSize:vi.fn(), retryTiles:vi.fn() };
+  const outlet = document.body.appendChild(document.createElement('main'));
+  const cleanup = mountRankingPage({
+    outlet,
+    query:new URLSearchParams(),
+    signal:new AbortController().signal,
+    navigate:vi.fn(),
+  }, { mapFactory:vi.fn(() => map) });
+
+  const [districtSelect] = outlet.querySelectorAll('select');
+  const trigger = outlet.querySelector('.ranking-select-trigger');
+  const menu = outlet.querySelector('.ranking-select-menu');
+
+  await vi.waitFor(() => expect(trigger.disabled).toBe(false));
+  trigger.click();
+  expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  expect(menu.hidden).toBe(false);
+  expect(menu.querySelectorAll('.ranking-select-option')).toHaveLength(3);
+
+  menu.querySelector('[data-value="강남구"]').click();
+  expect(districtSelect.value).toBe('강남구');
+  expect(trigger.textContent).toBe('강남구');
+  expect(menu.hidden).toBe(true);
+  cleanup();
+});
+
 it('장소가 없으면 AI 추천 안내를 표시하지 않는다', async () => {
   api.getRankings.mockResolvedValueOnce({ district:'마포구', category:'문화시설', items:[] });
   const map = { setItems:vi.fn(() => 0), select:vi.fn(), destroy:vi.fn(), invalidateSize:vi.fn(), retryTiles:vi.fn() };
