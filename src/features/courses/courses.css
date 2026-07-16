@@ -1,5 +1,30 @@
 .course-hero { padding-bottom: 2.5rem; }
 .course-hero .page-title span { color: var(--primary); }
+.course-ranking-panel { margin: 0 0 1.5rem; overflow: hidden; border: 1px solid #d8e2ff; border-radius: 18px; background: rgba(255, 255, 255, .98); box-shadow: 0 12px 32px rgba(49, 92, 253, .1); }
+.course-ranking-header { display: flex; align-items: center; justify-content: space-between; min-height: 70px; padding: 0 1.5rem; }
+.course-ranking-header h2 { margin: 0; font-size: clamp(1.2rem, 2.4vw, 1.65rem); letter-spacing: -.035em; }
+.course-ranking-toggle { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 1px solid #d8dee9; border-radius: 50%; background: #fff; color: #657086; box-shadow: 0 2px 6px rgba(20, 38, 70, .08); }
+.course-ranking-toggle span { width: 8px; height: 8px; border-top: 2px solid currentColor; border-left: 2px solid currentColor; transform: translateY(2px) rotate(45deg); transition: transform .2s ease; }
+.course-ranking-panel[data-collapsed="true"] .course-ranking-toggle span { transform: translateY(-2px) rotate(225deg); }
+.course-ranking-toggle:hover { border-color: #b8c1d1; background: #f6f8fb; color: #313b4f; }
+.course-ranking-body { padding: .25rem 1.5rem 1.15rem; border-top: 1px solid rgba(223, 228, 238, .78); }
+.course-ranking-content { max-width: 52rem; margin: 0 auto; }
+.course-ranking-content h3 { margin: 1rem 0 .6rem; color: var(--text); font-size: 1rem; }
+.course-ranking-stops { position: relative; display: grid; gap: .15rem; margin: 0; padding: 0; list-style: none; }
+.course-ranking-stops::before { content: ""; position: absolute; top: 1.45rem; bottom: 1.45rem; left: 1.05rem; width: 2px; background: #c7d2fe; }
+.course-ranking-stop { position: relative; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: .65rem; align-items: center; min-height: 3rem; }
+.course-ranking-stop__number { z-index: 1; display: grid; place-items: center; width: 2.15rem; height: 2.15rem; border-radius: 50%; background: var(--primary); color: #fff; font-size: .76rem; font-weight: 900; }
+.course-ranking-stop__copy { display: flex; min-width: 0; align-items: baseline; gap: .45rem; }
+.course-ranking-stop__copy strong { flex: none; font-size: .98rem; }
+.course-ranking-stop__copy small { min-width: 0; color: #7b8497; font-size: .76rem; line-height: 1.35; }
+.course-ranking-carousel { display: flex; align-items: center; justify-content: center; gap: .85rem; margin-top: .65rem; }
+.course-ranking-carousel__arrow { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid #d8dee9; border-radius: 50%; background: #fff; color: #657086; }
+.course-ranking-carousel__arrow span { width: 7px; height: 7px; border-bottom: 2px solid currentColor; border-left: 2px solid currentColor; transform: translateX(1px) rotate(45deg); }
+.course-ranking-carousel__arrow--next span { transform: translateX(-1px) rotate(225deg); }
+.course-ranking-dots { display: flex; align-items: center; gap: .45rem; }
+.course-ranking-dot { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; background: transparent; }
+.course-ranking-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #d8dee9; }
+.course-ranking-dot[aria-current="true"]::before { width: 10px; height: 10px; background: var(--primary); }
 .course-workspace { display: grid; grid-template-columns: minmax(16rem, .75fr) minmax(0, 1.25fr); gap: 1.25rem; align-items: start; }
 .course-criteria, .course-draft { padding: clamp(1rem, 3vw, 1.6rem); }
 .course-criteria { display: grid; gap: 1rem; position: sticky; top: 6rem; }
@@ -75,6 +100,9 @@
   .course-map { min-height: 20rem; }
 }
 @media (max-width: 520px) {
+  .course-ranking-header { min-height: 60px; padding: 0 1rem; }
+  .course-ranking-body { padding: .25rem 1rem 1rem; }
+  .course-ranking-stop__copy { align-items: flex-start; flex-direction: column; gap: .08rem; }
   .course-stop { grid-template-columns: 2.2rem 1fr auto; }
   .course-stop img { display: none; }
   .course-stop__actions { flex-direction: column; }
@@ -83,4 +111,4 @@
   .course-stop__select img { display: none; }
   .course-hero { padding-bottom: 1.5rem; }
 }
-@media (prefers-reduced-motion: reduce) { .course-stop { scroll-behavior: auto; } .course-stop__select { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .course-stop { scroll-behavior: auto; } .course-stop__select, .course-ranking-toggle span { transition: none; } }

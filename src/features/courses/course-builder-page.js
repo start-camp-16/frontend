@@ -1,5 +1,6 @@
 import { getCategories, getDistricts, getRankings } from '../ranking/ranking-api.js';
-import { createCourse, suggestCourse } from './course-api.js';
+import { createCourse, getCourseRankings, suggestCourse } from './course-api.js';
+import { renderCourseRankingCarousel, renderCourseRankingError } from './course-ranking-view.js';
 import { appendStop, moveStop, removeStop, toLocationIds } from './course-state.js';
 import { courseErrorMessage, validateCourse, validateCriteria } from './course-validation.js';
 import { renderCourseStops, renderPlaceSearchResults } from './course-view.js';
@@ -11,6 +12,16 @@ function option(value) { const item = document.createElement('option'); item.val
 
 export function mountCourseBuilderPage({ outlet, signal, navigate }) {
   outlet.innerHTML = `<section class="course-hero"><p class="eyebrow">Build a day in Seoul</p><h1 class="page-title">가까운 곳부터,<br><span>가볍게 골라봐요.</span></h1><p class="lede">지역과 관심사를 고르면 하루 코스의 방문 순서를 만들어 드려요.</p></section><section class="course-workspace"><form id="course-criteria" class="course-criteria panel"><div><p class="course-step">01 · 조건 고르기</p><h2>어디에서 무엇을 할까요?</h2></div><label>어느 구에서?<select name="district" disabled><option value="">구 선택</option></select></label><fieldset disabled><legend>관심 카테고리 <small>1~3개</small></legend><div id="course-categories" class="course-category-grid"></div></fieldset><label>방문 장소 수<select name="stop_count"><option value="3">3곳</option><option value="4">4곳</option><option value="5">5곳</option></select></label><p class="course-error" data-criteria-error role="alert"></p><button type="submit" disabled>코스 초안 만들기</button></form><section class="course-draft panel" aria-labelledby="course-draft-title"><div class="course-draft__header"><div><p class="course-step">02 · 순서 다듬기</p><h2 id="course-draft-title" tabindex="-1">나의 방문 순서</h2></div></div><div id="course-draft-status" aria-live="polite"></div><div id="course-stops"></div><div id="course-place-search"></div><div id="course-save"></div></section></section>`;
+  outlet.querySelector('.course-workspace').insertAdjacentHTML('beforebegin', `<section class="course-ranking-panel" data-course-rankings data-collapsed="false" aria-labelledby="course-ranking-title"><header class="course-ranking-header"><h2 id="course-ranking-title">오늘의 추천 코스</h2><button type="button" class="course-ranking-toggle" data-course-ranking-toggle aria-expanded="true" aria-controls="course-ranking-body" aria-label="추천 코스 접기"><span aria-hidden="true"></span></button></header><div id="course-ranking-body" class="course-ranking-body" data-course-ranking-body><div class="async-state">추천 코스를 불러오고 있어요.</div></div></section>`);
+  const rankingPanel = outlet.querySelector('[data-course-rankings]');
+  const rankingToggle = rankingPanel.querySelector('[data-course-ranking-toggle]');
+  rankingToggle.addEventListener('click', () => {
+    const collapsed = rankingPanel.dataset.collapsed !== 'true';
+    rankingPanel.dataset.collapsed = String(collapsed);
+    rankingToggle.setAttribute('aria-expanded', String(!collapsed));
+    rankingToggle.setAttribute('aria-label', collapsed ? '추천 코스 펼치기' : '추천 코스 접기');
+    rankingPanel.querySelector('[data-course-ranking-body]').hidden = collapsed;
+  });
   const form = outlet.querySelector('#course-criteria');
   const districtSelect = form.elements.district; const categoryFieldset = form.querySelector('fieldset');
   const categoriesRoot = form.querySelector('#course-categories'); const submit = form.querySelector('[type="submit"]');
@@ -95,5 +106,18 @@ export function mountCourseBuilderPage({ outlet, signal, navigate }) {
       districtSelect.disabled = false; categoryFieldset.disabled = false; criteriaError.textContent = ''; metadataRetry?.remove(); metadataRetry = undefined; updateSubmit();
     } catch (error) { if (error.name !== 'AbortError') { criteriaError.textContent = '선택 항목을 불러오지 못했습니다.'; if (!metadataRetry) { metadataRetry = document.createElement('button'); metadataRetry.type = 'button'; metadataRetry.className = 'button button--secondary'; metadataRetry.textContent = '다시 시도'; metadataRetry.addEventListener('click', loadMetadata); form.append(metadataRetry); } } }
   }
-  renderDraft(); loadMetadata(); return () => {};
+  async function loadRankedCourses() {
+    try {
+      const data = await getCourseRankings({ signal });
+      renderCourseRankingCarousel(rankingPanel, data.items);
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        renderCourseRankingError(rankingPanel, {
+          message: courseErrorMessage(error),
+          onRetry: loadRankedCourses,
+        });
+      }
+    }
+  }
+  renderDraft(); loadMetadata(); loadRankedCourses(); return () => {};
 }

@@ -13,6 +13,7 @@ import {
 import {
   createCourse,
   deleteCourse,
+  getCourseRankings,
   getCourse,
   suggestCourse,
   updateCourse,
@@ -29,6 +30,14 @@ beforeEach(() => {
     status: 200,
     headers: { 'content-type': 'application/json' },
   })));
+});
+
+it('requests the five ranked courses from the course rankings endpoint', async () => {
+  await getCourseRankings();
+
+  const [url, options] = fetch.mock.calls.at(-1);
+  expect(new URL(url).pathname).toBe('/api/course-rankings');
+  expect(options.method).toBe('GET');
 });
 
 it('코스 오류 코드별 복구 안내를 제공한다', () => {

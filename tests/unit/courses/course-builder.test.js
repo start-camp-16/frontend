@@ -10,6 +10,22 @@ const suggestion = {
   ],
 };
 
+const rankedCourses = {
+  items: Array.from({ length: 5 }, (_, index) => ({
+    rank: index + 1,
+    district: index === 0 ? '강남구' : '마포구',
+    title: `추천 코스 ${index + 1}`,
+    stops: [{
+      position: 1,
+      location: {
+        content_id: `ranked-${index + 1}-1`,
+        title: index === 0 ? '봉은사' : `장소 ${index + 1}`,
+        address: index === 0 ? '서울특별시 강남구 봉은사로 531' : `서울특별시 마포구 ${index + 1}길`,
+      },
+    }],
+  })),
+};
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
 }
@@ -20,6 +36,7 @@ beforeEach(() => {
     const url = new URL(input);
     if (url.pathname === '/api/meta/districts') return json({ items: ['마포구', '관악구'] });
     if (url.pathname === '/api/meta/categories') return json({ items: ['관광지', '문화시설', '쇼핑', '숙박'] });
+    if (url.pathname === '/api/course-rankings') return json(rankedCourses);
     if (url.pathname === '/api/course-suggestions') return json(suggestion);
     if (url.pathname === '/api/rankings') return json({ district: '마포구', category: '관광지', items: [{ rank: 4, content_id: '4', title: '서울함공원', category: '관광지', address: '서울 마포구' }] });
     if (url.pathname === '/api/courses' && options.method === 'POST') return json({ ...suggestion, public_id: '0123456789abcdef0123456789abcdef', title: '마포 하루' }, 201);
@@ -28,6 +45,36 @@ beforeEach(() => {
 });
 
 afterEach(() => vi.restoreAllMocks());
+
+it('renders a collapsible five-course carousel between the hero and builder', async () => {
+  const root = document.createElement('div');
+  document.body.append(root);
+  const app = startApp({ root });
+
+  await vi.waitFor(() => expect(root.textContent).toContain('강남구 추천 코스'));
+  const panel = root.querySelector('[data-course-rankings]');
+  expect(panel.previousElementSibling.classList.contains('course-hero')).toBe(true);
+  expect(panel.nextElementSibling.classList.contains('course-workspace')).toBe(true);
+  expect(panel.textContent).toContain('봉은사');
+  expect(panel.textContent).toContain('서울특별시 강남구 봉은사로 531');
+  expect(panel.querySelector('.course-ranking-stop__copy').textContent).toBe('봉은사서울특별시 강남구 봉은사로 531');
+  expect(panel.querySelector('.course-ranking-content').getAttribute('aria-live')).toBe('polite');
+  expect(panel.querySelectorAll('[data-course-ranking-dot]')).toHaveLength(5);
+  expect(panel.querySelector('[data-course-ranking-dot]').classList.contains('course-ranking-dot')).toBe(true);
+  expect(panel.querySelector('[data-course-ranking-dot][aria-current="true"]').dataset.courseRankingDot).toBe('0');
+  expect(panel.textContent).not.toContain('번째 코스');
+  expect(panel.textContent).not.toContain('이 코스로 시작하기');
+
+  panel.querySelector('[data-course-ranking-next]').click();
+  expect(panel.textContent).toContain('마포구 추천 코스');
+  expect(panel.querySelector('[data-course-ranking-dot][aria-current="true"]').dataset.courseRankingDot).toBe('1');
+
+  panel.querySelector('[data-course-ranking-toggle]').click();
+  expect(panel.dataset.collapsed).toBe('true');
+  expect(panel.querySelector('[data-course-ranking-body]').hidden).toBe(true);
+
+  app.stop();
+});
 
 it('추천 초안을 편집하고 익명 코스로 저장한다', async () => {
   const root = document.createElement('div');

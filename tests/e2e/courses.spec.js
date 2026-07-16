@@ -13,6 +13,22 @@ async function mockCourses(page) {
   await page.route('https://*.tile.openstreetmap.org/**', route => route.fulfill({ status: 204, body: '' }));
   await page.route('**/api/meta/districts', route => route.fulfill({ json: { items: ['마포구'] } }));
   await page.route('**/api/meta/categories', route => route.fulfill({ json: { items: ['관광지', '문화시설', '쇼핑'] } }));
+  await page.route('**/api/course-rankings', route => route.fulfill({
+    json: {
+      items: Array.from({ length: 5 }, (_, index) => ({
+        rank: index + 1,
+        district: '마포구',
+        title: `추천 코스 ${index + 1}`,
+        description: '마포 추천 코스',
+        thumbnail_url: null,
+        stops: stops.map((stop, stopIndex) => ({
+          ...stop,
+          location: { ...stop.location, title: `추천 장소 ${stopIndex + 1}` },
+        })),
+        total_straight_line_distance_meters: 1900,
+      })),
+    },
+  }));
   await page.route('**/api/course-suggestions', route => route.fulfill({ json: { district: '마포구', categories: ['관광지', '문화시설'], stops, total_straight_line_distance_meters: 1900 } }));
   await page.route('**/api/rankings**', route => route.fulfill({ json: { district: '마포구', category: '관광지', items: [{ rank: 4, ...extraLocation }] } }));
   await page.route(`**/api/courses/${publicId}`, async route => {

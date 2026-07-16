@@ -1,5 +1,6 @@
 import { request } from '../../api/client.js';
 
+export const getCourseRankings = ({ signal } = {}) => request('/api/course-rankings', { signal });
 export const suggestCourse = (body, { signal } = {}) => request('/api/course-suggestions', { method: 'POST', body, signal });
 export const createCourse = (body, { signal } = {}) => request('/api/courses', { method: 'POST', body, signal });
 export const getCourse = (publicId, { signal } = {}) => request(`/api/courses/${publicId}`, { signal });
