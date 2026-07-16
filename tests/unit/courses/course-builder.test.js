@@ -49,8 +49,8 @@ afterEach(() => vi.restoreAllMocks());
 
 it('keeps the recommendation route at a fixed five-stop height', () => {
   const css = fs.readFileSync('src/features/courses/courses.css', 'utf8').replace(/\s+/g, '');
-  expect(css).toContain('.course-ranking-stops{position:relative;display:grid;align-content:start;height:15rem;');
-  expect(css).toContain('.course-ranking-stops{height:22.5rem;grid-auto-rows:4.5rem;}');
+  expect(css).toContain('.course-ranking-stops{position:relative;display:grid;align-content:start;height:15.6rem;');
+  expect(css).toContain('.course-ranking-stops{height:23.1rem;grid-auto-rows:4.5rem;}');
 });
 
 it('renders a collapsible five-course carousel between the hero and builder', async () => {
