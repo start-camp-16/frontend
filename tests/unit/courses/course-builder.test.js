@@ -49,8 +49,10 @@ afterEach(() => vi.restoreAllMocks());
 
 it('keeps the recommendation route at a fixed five-stop height', () => {
   const css = fs.readFileSync('src/features/courses/courses.css', 'utf8').replace(/\s+/g, '');
-  expect(css).toContain('.course-ranking-stops{position:relative;display:grid;align-content:start;height:15.6rem;');
-  expect(css).toContain('.course-ranking-stops{height:23.1rem;grid-auto-rows:4.5rem;}');
+  expect(css).toContain('.course-ranking-stops{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:15.6rem;');
+  expect(css).toContain('.course-ranking-stop{position:relative;display:grid;grid-template-columns:2.2remminmax(0,1fr);gap:.65rem;align-items:center;flex:003rem;min-height:3rem;}');
+  expect(css).toContain('.course-ranking-stops{height:23.1rem;}');
+  expect(css).toContain('.course-ranking-stop{flex-basis:4.5rem;}');
 });
 
 it('styles course criteria selects like the homepage dropdown shell', () => {
