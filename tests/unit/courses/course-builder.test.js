@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import fs from 'node:fs';
 import { startApp } from '../../../src/app/app.js';
 
 const suggestion = {
@@ -45,6 +46,12 @@ beforeEach(() => {
 });
 
 afterEach(() => vi.restoreAllMocks());
+
+it('keeps the recommendation route at a fixed five-stop height', () => {
+  const css = fs.readFileSync('src/features/courses/courses.css', 'utf8').replace(/\s+/g, '');
+  expect(css).toContain('.course-ranking-stops{position:relative;display:grid;align-content:start;height:15rem;');
+  expect(css).toContain('.course-ranking-stops{height:22.5rem;grid-auto-rows:4.5rem;}');
+});
 
 it('renders a collapsible five-course carousel between the hero and builder', async () => {
   const root = document.createElement('div');

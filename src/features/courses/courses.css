@@ -11,7 +11,7 @@
 .course-ranking-content { max-width: 52rem; margin: 0 auto; }
 .course-ranking-kicker { margin: 1rem 0 .22rem; color: var(--primary); font-size: .76rem; font-weight: 900; letter-spacing: .02em; }
 .course-ranking-content h3 { margin: 0 0 .6rem; color: var(--text); font-size: 1rem; }
-.course-ranking-stops { position: relative; display: grid; align-content: start; min-height: 15rem; gap: .15rem; margin: 0; padding: 0; list-style: none; }
+.course-ranking-stops { position: relative; display: grid; align-content: start; height: 15rem; overflow: hidden; grid-auto-rows: 3rem; gap: .15rem; margin: 0; padding: 0; list-style: none; }
 .course-ranking-stops::before { content: ""; position: absolute; top: 1.45rem; bottom: 1.45rem; left: 1.05rem; width: 2px; background: #c7d2fe; }
 .course-ranking-stop { position: relative; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: .65rem; align-items: center; min-height: 3rem; }
 .course-ranking-stop__number { z-index: 1; display: grid; place-items: center; width: 2.15rem; height: 2.15rem; border-radius: 50%; background: var(--primary); color: #fff; font-size: .76rem; font-weight: 900; }
@@ -103,6 +103,7 @@
 @media (max-width: 520px) {
   .course-ranking-header { min-height: 60px; padding: 0 1rem; }
   .course-ranking-body { padding: .25rem 1rem 1rem; }
+  .course-ranking-stops { height: 22.5rem; grid-auto-rows: 4.5rem; }
   .course-ranking-stop__copy { align-items: flex-start; flex-direction: column; gap: .08rem; }
   .course-stop { grid-template-columns: 2.2rem 1fr auto; }
   .course-stop img { display: none; }
